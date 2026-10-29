@@ -1,0 +1,14 @@
+create index if not exists idx_memberships_user on property_memberships(user_id);
+create index if not exists idx_memberships_property on property_memberships(property_id);
+create index if not exists idx_expenses_property_due on expenses(property_id, due_date);
+create index if not exists idx_expensesplits_expense on expense_splits(expense_id);
+create index if not exists idx_expensesplits_user on expense_splits(user_id);
+create index if not exists idx_inventory_property_cat on inventory_items(property_id, category);
+create index if not exists idx_inventory_tags on inventory_items using gin(tags);
+create index if not exists idx_inventory_search on inventory_items using gin(to_tsvector('english', name || ' ' || coalesce(brand,'') || ' ' || coalesce(model_number,'')));
+create index if not exists idx_tickets_property_status on maintenance_tickets(property_id, status);
+create index if not exists idx_tickets_contractor on maintenance_tickets(assigned_contractor);
+create index if not exists idx_messages_thread_created on messages(thread_id, created_at);
+create index if not exists idx_notifications_user_read on notifications(user_id, read_at);
+create index if not exists idx_leases_property_status on leases(property_id, status);
+create index if not exists idx_rentledger_lease_due on rent_ledger(lease_id, due_date);

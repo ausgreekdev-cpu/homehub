@@ -1,0 +1,13 @@
+create type user_role as enum ('tenant','landlord','agent','contractor');
+create type membership_status as enum ('invited','active','removed');
+create type property_type as enum ('house','apartment','unit','townhouse','commercial','other');
+create type expense_type as enum ('rent','utility','internet','insurance','maintenance','cleaning','other');
+create type split_method as enum ('equal','by_income','by_room_size','by_occupancy_days','custom_pct','custom_amount');
+create type expense_status as enum ('draft','pending','partial','paid','overdue','cancelled');
+create type ticket_status as enum ('open','triaged','quoted','approved','scheduled','in_progress','completed','invoiced','closed','rejected');
+create type ticket_priority as enum ('emergency','urgent','routine','cosmetic');
+create type trade_category as enum ('plumbing','electrical','hvac','carpentry','painting','cleaning','pest_control','locksmith','appliance','general','other');
+create type inventory_category as enum ('appliance','furniture','electronics','fixture','outdoor','tool','vehicle','other');
+create type item_condition as enum ('new','good','fair','poor','damaged');
+create type report_type as enum ('move_in','move_out','periodic','incident');
+create type chore_status as enum ('pending','in_progress','done','skipped');

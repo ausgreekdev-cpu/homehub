@@ -1,0 +1,4 @@
+-- Seed data (optional). Run via: supabase db reset --seed
+-- Auth users must be created via Supabase Auth first; then insert profiles/properties/memberships.
+-- Example:
+-- insert into public.properties (name, address, owner_id) values ('Demo House', '1 Demo St', '<user-uuid>');
