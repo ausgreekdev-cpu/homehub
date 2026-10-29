@@ -8,3 +8,4 @@ export * from './schemas/ticket';
 export * from './financials/split';
 export * from './ai/inventoryScanner';
 export * from './csv';
+export * from './i18n';
