@@ -350,14 +350,32 @@ function MaintenanceTab({ propertyId }: { propertyId: string }) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
     let location: any = null;
+    let within: boolean | null = null;
+    let accuracy: number | null = null;
     try {
       const pos: any = await new Promise((resolve, reject) => {
         navigator.geolocation.getCurrentPosition(resolve, reject, { enableHighAccuracy: true, timeout: 10000 });
       });
       location = `POINT(${pos.coords.longitude} ${pos.coords.latitude})`;
+      accuracy = pos.coords.accuracy;
+      // fetch ticket geofence
+      const { data: t } = await supabase.from('maintenance_tickets').select('geofence_center,geofence_radius_m').eq('id', ticketId).single() as { data: any };
+      if (t?.geofence_center && t?.geofence_radius_m) {
+        const m = t.geofence_center.match(/POINT\(([-\d.]+) ([-\d.]+)\)/);
+        if (m) {
+          const [_, lng, lat] = m;
+          const R = 6371000;
+          const toRad = (d: number) => d * Math.PI / 180;
+          const dLat = toRad(pos.coords.latitude - Number(lat));
+          const dLng = toRad(pos.coords.longitude - Number(lng));
+          const a = Math.sin(dLat/2)**2 + Math.cos(toRad(Number(lat))) * Math.cos(toRad(pos.coords.latitude)) * Math.sin(dLng/2)**2;
+          const dist = 2 * R * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+          within = dist <= (t.geofence_radius_m ?? 100);
+        }
+      }
     } catch { /* no geo */ }
     await supabase.from('ticket_checkins').insert({
-      ticket_id: ticketId, contractor_id: user.id, type, location, notes: type,
+      ticket_id: ticketId, contractor_id: user.id, type, location, accuracy_m: accuracy, within_geofence: within, notes: type,
     });
     if (type === 'checkin') await updateStatus(ticketId, 'in_progress', { started_at: new Date().toISOString() });
     else await updateStatus(ticketId, 'completed', { completed_at: new Date().toISOString() });
