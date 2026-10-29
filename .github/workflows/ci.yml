@@ -21,6 +21,7 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm --filter @homehub/shared typecheck
       - run: pnpm --filter @homehub/shared test
+      - run: pnpm test
       - run: pnpm --filter @homehub/web typecheck
       - run: pnpm --filter @homehub/web build
         env:

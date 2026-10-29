@@ -8,6 +8,9 @@ importers:
 
   .:
     devDependencies:
+      '@supabase/supabase-js':
+        specifier: ^2.45.0
+        version: 2.118.0
       eslint:
         specifier: 9.13.0
         version: 9.13.0(jiti@1.21.7)
@@ -17,6 +20,9 @@ importers:
       typescript:
         specifier: 5.6.3
         version: 5.6.3
+      vitest:
+        specifier: ^2.1.4
+        version: 2.1.9(@types/node@20.19.43)(terser@5.51.2)
 
   apps/web:
     dependencies:
