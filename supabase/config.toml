@@ -70,3 +70,11 @@ verify_jwt = false
 [functions.send-reminder]
 enabled = true
 verify_jwt = false
+
+[functions.create-payment-intent]
+enabled = true
+verify_jwt = true
+
+[functions.create-link-token]
+enabled = true
+verify_jwt = true

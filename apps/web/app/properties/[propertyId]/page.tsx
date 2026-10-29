@@ -59,13 +59,21 @@ function OverviewTab({ propertyId }: { propertyId: string }) {
 
 function BillsTab({ propertyId }: { propertyId: string }) {
   const [expenses, setExpenses] = useState<any[]>([]);
+  const [splitsByExpense, setSplitsByExpense] = useState<Record<string, any[]>>({});
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
+  const [paying, setPaying] = useState<string | null>(null);
 
   async function load() {
     const supabase = createClient();
     const { data } = await supabase.from('expenses').select('*').eq('property_id', propertyId).order('created_at', { ascending: false }) as { data: any };
     setExpenses(data ?? []);
+    const map: Record<string, any[]> = {};
+    for (const e of data ?? []) {
+      const { data: sp } = await supabase.from('expense_splits').select('*').eq('expense_id', e.id) as { data: any };
+      map[e.id] = sp ?? [];
+    }
+    setSplitsByExpense(map);
   }
   useEffect(() => { load(); }, [propertyId]);
 
@@ -82,6 +90,20 @@ function BillsTab({ propertyId }: { propertyId: string }) {
     load();
   }
 
+  async function paySplit(splitId: string) {
+    setPaying(splitId);
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase.functions.invoke('create-payment-intent', { body: { splitId } });
+      if (error) throw new Error(error.message);
+      alert(`PaymentIntent created: ${data.paymentIntentId}\nClient secret: ${data.clientSecret}\nAmount: $${(data.amountCents / 100).toFixed(2)}\n\nConfirm via Stripe.js in production.`);
+    } catch (e: any) {
+      alert(e.message ?? String(e));
+    } finally {
+      setPaying(null);
+    }
+  }
+
   return (
     <div>
       <form onSubmit={add} className="flex gap-2 mb-4">
@@ -91,9 +113,25 @@ function BillsTab({ propertyId }: { propertyId: string }) {
       </form>
       <ul className="divide-y border rounded">
         {expenses.map((x) => (
-          <li key={x.id} className="p-3 flex justify-between">
-            <span>{x.title}</span>
-            <span className="font-mono">${(x.amount_cents / 100).toFixed(2)} {x.status}</span>
+          <li key={x.id} className="p-3">
+            <div className="flex justify-between">
+              <span className="font-semibold">{x.title}</span>
+              <span className="font-mono">${(x.amount_cents / 100).toFixed(2)} {x.status}</span>
+            </div>
+            {(splitsByExpense[x.id] ?? []).length > 0 && (
+              <ul className="mt-2 ml-4 space-y-1 text-xs">
+                {(splitsByExpense[x.id] ?? []).map((s: any) => (
+                  <li key={s.id} className="flex justify-between items-center">
+                    <span>{s.user_id.slice(0, 8)}… · ${((s.share_cents - (s.paid_cents ?? 0)) / 100).toFixed(2)} due · {s.status}</span>
+                    {s.status !== 'paid' && (
+                      <button onClick={() => paySplit(s.id)} disabled={paying === s.id} className="border rounded px-2 py-0.5">
+                        {paying === s.id ? '…' : 'Pay'}
+                      </button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
           </li>
         ))}
         {expenses.length === 0 && <li className="p-3 text-slate-500">No bills yet.</li>}
