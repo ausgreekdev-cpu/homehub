@@ -5,6 +5,8 @@ import { createClient } from '@/lib/supabase/client';
 import { toCsv, downloadCsv, parseCsv } from '@homehub/shared';
 import { useMembership } from '@/lib/useMembership';
 import { NotificationsBell } from '@/components/NotificationsBell';
+import { OfflineBanner } from '@/components/OfflineBanner';
+import { enqueue } from '@/lib/offlineQueue';
 
 function ItemPhoto({ path }: { path: string }) {
   const [url, setUrl] = useState<string | null>(null);
@@ -32,7 +34,9 @@ export default function PropertyPage() {
   const tabs: Tab[] = ['overview', 'bills', 'inventory', 'maintenance', 'messages', 'tenancy', 'chores', 'rules'];
 
   return (
-    <main className="p-8 max-w-5xl mx-auto">
+    <>
+      <OfflineBanner />
+      <main className="p-8 max-w-5xl mx-auto">
       <div className="flex items-center justify-between">
         <div>
           <a href="/dashboard" className="text-sm text-slate-600 underline">← Back</a>
@@ -60,6 +64,7 @@ export default function PropertyPage() {
       {tab === 'chores' && <ChoresTab propertyId={propertyId} />}
       {tab === 'rules' && <RulesTab propertyId={propertyId} />}
     </main>
+    </>
   );
 }
 
@@ -485,7 +490,14 @@ function MessagesTab({ propertyId }: { propertyId: string }) {
     const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    await supabase.from('messages').insert({ thread_id: active, sender_id: user.id, body });
+    const payload = { thread_id: active, sender_id: user.id, body };
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      enqueue('message', payload);
+      setMessages((prev) => [...prev, { id: crypto.randomUUID(), ...payload, created_at: new Date().toISOString() }]);
+      setBody('');
+      return;
+    }
+    await supabase.from('messages').insert(payload);
     setBody('');
   }
 

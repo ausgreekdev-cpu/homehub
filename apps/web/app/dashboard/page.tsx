@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { NotificationsBell } from '@/components/NotificationsBell';
+import { OfflineBanner } from '@/components/OfflineBanner';
 import Link from 'next/link';
 
 export default function DashboardPage() {
@@ -32,7 +33,9 @@ export default function DashboardPage() {
   }
 
   return (
-    <main className="p-8 max-w-4xl mx-auto">
+    <>
+      <OfflineBanner />
+      <main className="p-8 max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Your properties</h1>
         <div className="flex items-center gap-3">
@@ -61,5 +64,6 @@ export default function DashboardPage() {
         </ul>
       )}
     </main>
+    </>
   );
 }
