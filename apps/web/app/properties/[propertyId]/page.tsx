@@ -6,6 +6,16 @@ import { toCsv, downloadCsv, parseCsv } from '@homehub/shared';
 import { useMembership } from '@/lib/useMembership';
 import { NotificationsBell } from '@/components/NotificationsBell';
 
+function ItemPhoto({ path }: { path: string }) {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.storage.from('condition-reports').createSignedUrl(path, 3600).then(({ data }: { data: any }) => setUrl(data?.signedUrl ?? null));
+  }, [path]);
+  if (!url) return <div className="w-16 h-16 bg-slate-100 rounded" />;
+  return <img src={url} alt="" className="w-16 h-16 object-cover rounded border" />;
+}
+
 type Tab = 'overview' | 'bills' | 'inventory' | 'maintenance' | 'messages' | 'tenancy' | 'chores' | 'rules';
 
 export default function PropertyPage() {
@@ -650,6 +660,8 @@ function TenancyTab({ propertyId }: { propertyId: string }) {
           ))}
           {reports.length === 0 && <li className="p-3 text-slate-500 text-sm">No reports yet.</li>}
         </ul>
+        <SideBySideCompare propertyId={propertyId} reports={reports} />
+
         {selectedReport && (
           <div className="mt-3 border rounded p-3">
             <h3 className="font-semibold text-sm mb-2">Items for selected report</h3>
@@ -673,10 +685,36 @@ function TenancyTab({ propertyId }: { propertyId: string }) {
             </form>
             <ul className="divide-y">
               {reportItems.map((it) => (
-                <li key={it.id} className="py-1 text-sm">
-                  <span className="font-medium">{it.area}</span> — {it.item} · {it.condition}
-                  {it.ai_flag && <span className={`ml-2 text-xs ${it.ai_flag === 'damage' ? 'text-red-600' : it.ai_flag === 'wear_and_tear' ? 'text-amber-600' : 'text-green-600'}`}>[{it.ai_flag}]</span>}
-                  {it.notes && <span className="text-slate-500"> · {it.notes}</span>}
+                <li key={it.id} className="py-2 text-sm">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <span className="font-medium">{it.area}</span> — {it.item} · {it.condition}
+                      {it.ai_flag && <span className={`ml-2 text-xs ${it.ai_flag === 'damage' ? 'text-red-600' : it.ai_flag === 'wear_and_tear' ? 'text-amber-600' : 'text-green-600'}`}>[{it.ai_flag}]</span>}
+                      {it.notes && <span className="text-slate-500"> · {it.notes}</span>}
+                    </div>
+                    <label className="text-xs border rounded px-2 py-0.5 cursor-pointer">
+                      +Photo
+                      <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                        const f = e.target.files?.[0]; if (!f) return;
+                        const supabase = createClient();
+                        const path = `condition/${selectedReport}/${it.id}/${crypto.randomUUID()}-${f.name}`;
+                        const { error: upErr } = await supabase.storage.from('condition-reports').upload(path, f);
+                        if (upErr) { alert(upErr.message); return; }
+                        const newPaths = [...(it.photo_paths ?? []), path];
+                        await supabase.from('condition_report_items').update({ photo_paths: newPaths }).eq('id', it.id);
+                        const { data } = await supabase.from('condition_report_items').select('*').eq('report_id', selectedReport).order('created_at') as { data: any };
+                        setReportItems(data ?? []);
+                        e.target.value = '';
+                      }} />
+                    </label>
+                  </div>
+                  {(it.photo_paths ?? []).length > 0 && (
+                    <div className="flex gap-2 mt-1 flex-wrap">
+                      {(it.photo_paths ?? []).map((p: string) => (
+                        <ItemPhoto key={p} path={p} />
+                      ))}
+                    </div>
+                  )}
                 </li>
               ))}
               {reportItems.length === 0 && <li className="text-slate-500 text-sm">No items.</li>}
@@ -806,6 +844,63 @@ function RulesTab({ propertyId }: { propertyId: string }) {
         ))}
         {rules.length === 0 && <li className="text-slate-500 text-sm">No house rules yet.</li>}
       </ul>
+    </div>
+  );
+}
+
+function SideBySideCompare({ propertyId, reports }: { propertyId: string; reports: any[] }) {
+  const moveIn = reports.find((r) => r.type === 'move_in');
+  const moveOut = reports.find((r) => r.type === 'move_out');
+  const [inItems, setInItems] = useState<any[]>([]);
+  const [outItems, setOutItems] = useState<any[]>([]);
+
+  useEffect(() => {
+    const supabase = createClient();
+    if (moveIn) supabase.from('condition_report_items').select('*').eq('report_id', moveIn.id).then(({ data }: { data: any }) => setInItems(data ?? []));
+    if (moveOut) supabase.from('condition_report_items').select('*').eq('report_id', moveOut.id).then(({ data }: { data: any }) => setOutItems(data ?? []));
+  }, [moveIn?.id, moveOut?.id]);
+
+  if (!moveIn || !moveOut) return null;
+
+  // pair by area+item
+  const pairs: { key: string; a?: any; b?: any }[] = [];
+  const used = new Set<string>();
+  for (const a of inItems) {
+    const b = outItems.find((o) => o.area === a.area && o.item === a.item);
+    pairs.push({ key: `${a.area}|${a.item}`, a, b });
+    if (b) used.add(b.id);
+  }
+  for (const b of outItems) {
+    if (used.has(b.id)) continue;
+    pairs.push({ key: `${b.area}|${b.item}`, a: undefined, b });
+  }
+
+  return (
+    <div className="mt-4 border rounded p-3">
+      <h3 className="font-semibold text-sm mb-2">Side-by-side comparison (move-in vs move-out)</h3>
+      <div className="space-y-4">
+        {pairs.map((p) => (
+          <div key={p.key} className="grid grid-cols-2 gap-3">
+            <div>
+              <div className="text-xs font-semibold text-slate-600 mb-1">Move-in: {p.key}</div>
+              <div className="flex gap-1 flex-wrap">
+                {(p.a?.photo_paths ?? []).map((ph: string) => <ItemPhoto key={ph} path={ph} />)}
+                {!(p.a?.photo_paths ?? []).length && <span className="text-xs text-slate-400">no photos</span>}
+              </div>
+              {p.a && <div className="text-xs mt-1">{p.a.condition} {p.a.ai_flag ? `· ${p.a.ai_flag}` : ''}</div>}
+            </div>
+            <div>
+              <div className="text-xs font-semibold text-slate-600 mb-1">Move-out: {p.key}</div>
+              <div className="flex gap-1 flex-wrap">
+                {(p.b?.photo_paths ?? []).map((ph: string) => <ItemPhoto key={ph} path={ph} />)}
+                {!(p.b?.photo_paths ?? []).length && <span className="text-xs text-slate-400">no photos</span>}
+              </div>
+              {p.b && <div className="text-xs mt-1">{p.b.condition} {p.b.ai_flag ? `· ${p.b.ai_flag}` : ''}</div>}
+            </div>
+          </div>
+        ))}
+        {pairs.length === 0 && <p className="text-slate-500 text-sm">No items in either report.</p>}
+      </div>
     </div>
   );
 }
