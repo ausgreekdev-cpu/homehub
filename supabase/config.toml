@@ -78,3 +78,7 @@ verify_jwt = true
 [functions.create-link-token]
 enabled = true
 verify_jwt = true
+
+[functions.warranty-check]
+enabled = true
+verify_jwt = false
