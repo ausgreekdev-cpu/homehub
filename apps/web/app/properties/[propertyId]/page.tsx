@@ -280,6 +280,19 @@ function InventoryTab({ propertyId }: { propertyId: string }) {
               {it.purchase_price_cents ? ` · purchased $${(it.purchase_price_cents/100).toFixed(2)}` : ''}
               {it.warranty_expiry ? ` · warranty ${new Date(it.warranty_expiry).toLocaleDateString()}${new Date(it.warranty_expiry) < new Date(Date.now() + 30*86400000) ? ' ⚠️' : ''}` : ''}
             </div>
+            <div className="mt-1 flex items-center gap-2 text-xs">
+              {it.manual_url
+                ? <a href={it.manual_url} target="_blank" rel="noopener noreferrer" className="text-indigo-600 underline">Manual ↗</a>
+                : <button onClick={() => window.open(`https://www.google.com/search?q=${encodeURIComponent((it.brand ?? '') + ' ' + (it.model_number ?? '') + ' manual pdf')}`, '_blank')} className="border rounded px-2 py-0.5">Find manual</button>}
+              <input className="border rounded px-1 py-0.5 w-40" placeholder="paste manual URL" onKeyDown={async (e) => {
+                if (e.key !== 'Enter') return;
+                const v = (e.target as HTMLInputElement).value.trim();
+                if (!v) return;
+                const supabase = createClient();
+                await supabase.from('inventory_items').update({ manual_url: v }).eq('id', it.id);
+                load();
+              }} />
+            </div>
           </li>
         ))}
         {items.length === 0 && <li className="p-3 text-slate-500">No inventory yet. Scan a photo to start.</li>}
