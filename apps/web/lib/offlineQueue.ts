@@ -1,54 +1,98 @@
-'use client';
-const KEY = 'homehub.offlineQueue';
+import { openDB, DBSchema, IDBPDatabase } from 'idb'
 
-export interface QueuedMutation {
-  id: string;
-  type: string;
-  payload: any;
-  createdAt: string;
-  attempts: number;
-}
-
-function read(): QueuedMutation[] {
-  try { return JSON.parse(localStorage.getItem(KEY) ?? '[]'); } catch { return []; }
-}
-function write(q: QueuedMutation[]) { localStorage.setItem(KEY, JSON.stringify(q)); }
-
-export function enqueue(type: string, payload: any): QueuedMutation {
-  const item: QueuedMutation = { id: crypto.randomUUID(), type, payload, createdAt: new Date().toISOString(), attempts: 0 };
-  const q = read(); q.push(item); write(q);
-  notify();
-  return item;
-}
-
-export function getQueue(): QueuedMutation[] { return read(); }
-export function getQueueSize(): number { return read().length; }
-
-export function remove(id: string) {
-  write(read().filter((q) => q.id !== id));
-  notify();
-}
-
-export function incrementAttempts(id: string) {
-  const q = read().map((m) => m.id === id ? { ...m, attempts: m.attempts + 1 } : m);
-  write(q);
-}
-
-type Listener = (size: number) => void;
-const listeners = new Set<Listener>();
-export function subscribe(fn: Listener) { listeners.add(fn); return () => listeners.delete(fn); }
-function notify() { const s = read().length; listeners.forEach((l) => l(s)); }
-
-export async function flush(handler: (m: QueuedMutation) => Promise<boolean>) {
-  const q = read();
-  for (const m of q) {
-    try {
-      const ok = await handler(m);
-      if (ok) remove(m.id);
-      else incrementAttempts(m.id);
-    } catch {
-      incrementAttempts(m.id);
+interface OfflineQueueDB extends DBSchema {
+  queue: {
+    key: string
+    value: {
+      id: string
+      action: string
+      type?: string
+      payload: any
+      timestamp: number
+      retries: number
     }
   }
-  notify();
+}
+
+let dbPromise: Promise<IDBPDatabase<OfflineQueueDB>> | null = null
+const listeners = new Set<(size: number) => void>()
+
+function getDB() {
+  if (!dbPromise) {
+    dbPromise = openDB<OfflineQueueDB>('homehub-offline', 1, {
+      upgrade(db) {
+        if (!db.objectStoreNames.contains('queue')) {
+          db.createObjectStore('queue', { keyPath: 'id' })
+        }
+      },
+    })
+  }
+  return dbPromise
+}
+
+async function notify() {
+  const size = await getQueueSize()
+  listeners.forEach(l => l(size))
+}
+
+export async function enqueue(action: string, payload: any) {
+  const db = await getDB()
+  const id = crypto.randomUUID()
+  await db.add('queue', {
+    id,
+    action,
+    type: action,
+    payload,
+    timestamp: Date.now(),
+    retries: 0,
+  })
+  await notify()
+  return id
+}
+
+export async function getQueue() {
+  const db = await getDB()
+  return db.getAll('queue')
+}
+
+export async function getQueueSize() {
+  const db = await getDB()
+  return db.count('queue')
+}
+
+export function subscribe(cb: (size: number) => void) {
+  listeners.add(cb)
+  getQueueSize().then(cb)
+  return () => listeners.delete(cb)
+}
+
+export async function removeFromQueue(id: string) {
+  const db = await getDB()
+  await db.delete('queue', id)
+  await notify()
+}
+
+export async function flush(handler?: (item: any) => Promise<boolean>) {
+  const items = await getQueue()
+  for (const item of items) {
+    try {
+      if (handler) {
+        const ok = await handler(item)
+        if (ok) await removeFromQueue(item.id)
+      } else {
+        await removeFromQueue(item.id)
+      }
+    } catch (err) {
+      console.error('Failed to flush:', err)
+    }
+  }
+  await notify()
+}
+
+export async function flushQueue() {
+  await flush()
+}
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('online', () => flush())
 }

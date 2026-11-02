@@ -7,6 +7,8 @@ import { useMembership } from '@/lib/useMembership';
 import { NotificationsBell } from '@/components/NotificationsBell';
 import { OfflineBanner } from '@/components/OfflineBanner';
 import { enqueue } from '@/lib/offlineQueue';
+import { StripePaymentForm } from '@/components/StripePaymentForm';
+import { PlaidLinkButton } from '@/components/PlaidLinkButton';
 
 function ItemPhoto({ path }: { path: string }) {
   const [url, setUrl] = useState<string | null>(null);
@@ -78,6 +80,7 @@ function BillsTab({ propertyId }: { propertyId: string }) {
   const [title, setTitle] = useState('');
   const [amount, setAmount] = useState('');
   const [paying, setPaying] = useState<string | null>(null);
+  const [paymentData, setPaymentData] = useState<{ splitId: string; clientSecret: string; amountCents: number } | null>(null);
 
   async function load() {
     const supabase = createClient();
@@ -111,7 +114,7 @@ function BillsTab({ propertyId }: { propertyId: string }) {
       const supabase = createClient();
       const { data, error } = await supabase.functions.invoke('create-payment-intent', { body: { splitId } });
       if (error) throw new Error(error.message);
-      alert(`PaymentIntent created: ${data.paymentIntentId}\nClient secret: ${data.clientSecret}\nAmount: $${(data.amountCents / 100).toFixed(2)}\n\nConfirm via Stripe.js in production.`);
+      setPaymentData({ splitId, clientSecret: data.clientSecret, amountCents: data.amountCents });
     } catch (e: any) {
       alert(e.message ?? String(e));
     } finally {
@@ -126,6 +129,22 @@ function BillsTab({ propertyId }: { propertyId: string }) {
         <input className="border rounded p-2 w-32" placeholder="Amount" value={amount} onChange={(e) => setAmount(e.target.value)} required />
         <button className="bg-slate-900 text-white rounded px-4">Add bill</button>
       </form>
+      <div className="mb-4">
+        <PlaidLinkButton propertyId={propertyId} onSuccess={() => alert('Bank linked')} />
+      </div>
+      {paymentData && (
+        <div className="mb-4 p-4 border rounded bg-white">
+          <div className="flex justify-between mb-2">
+            <h3 className="font-semibold">Pay ${(paymentData.amountCents / 100).toFixed(2)}</h3>
+            <button onClick={() => setPaymentData(null)} className="text-sm text-slate-500">Cancel</button>
+          </div>
+          <StripePaymentForm
+            clientSecret={paymentData.clientSecret}
+            amount={paymentData.amountCents}
+            onSuccess={() => { alert('Payment successful'); setPaymentData(null); load(); }}
+          />
+        </div>
+      )}
       <ul className="divide-y border rounded">
         {expenses.map((x) => (
           <li key={x.id} className="p-3">

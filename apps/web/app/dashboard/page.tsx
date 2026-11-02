@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { NotificationsBell } from '@/components/NotificationsBell';
 import { OfflineBanner } from '@/components/OfflineBanner';
+import { RoleSwitcher } from '@/components/RoleSwitcher';
 import Link from 'next/link';
 
 export default function DashboardPage() {
@@ -37,7 +38,10 @@ export default function DashboardPage() {
       <OfflineBanner />
       <main className="p-8 max-w-4xl mx-auto">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Your properties</h1>
+        <div className="flex items-center gap-4">
+          <h1 className="text-2xl font-bold">Your properties</h1>
+          <RoleSwitcher />
+        </div>
         <div className="flex items-center gap-3">
           <NotificationsBell />
           <button onClick={async () => { const s = createClient(); await s.auth.signOut(); window.location.href = '/'; }} className="text-sm text-slate-600 underline">Sign out</button>

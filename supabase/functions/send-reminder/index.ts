@@ -1,34 +1,65 @@
-import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { corsHeaders } from '../_shared/cors.ts';
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { corsHeaders } from '../_shared/cors.ts'
 
 serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
-  try {
-    const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
-    const today = new Date().toISOString().slice(0, 10);
-    // flip overdue
-    await supabase.from('expenses').update({ status: 'overdue' })
-      .lt('due_date', today).in('status', ['pending', 'partial']);
-    await supabase.from('expense_splits').update({ status: 'overdue' })
-      .in('status', ['pending', 'partial'])
-      .lt('created_at', new Date().toISOString()); // placeholder filter
-
-    // notify unpaid splits
-    const { data: splits } = await supabase.from('expense_splits').select('*, expenses(title, property_id)').eq('status', 'overdue');
-    for (const s of splits ?? []) {
-      await supabase.from('notifications').insert({
-        user_id: s.user_id,
-        type: 'overdue_bill',
-        title: `Overdue: ${s.expenses?.title ?? 'Bill'}`,
-        body: `You have an unpaid share. Please settle soon.`,
-        link: `/properties/${s.expenses?.property_id}?tab=bills`,
-      });
-    }
-    return new Response(JSON.stringify({ ok: true, notified: (splits ?? []).length }), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  } catch (e) {
-    return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
   }
-});
+
+  try {
+    const { userId, subject, body, sendEmail } = await req.json()
+    
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
+
+    const { error: notifError } = await supabase
+      .from('notifications')
+      .insert({
+        user_id: userId,
+        type: 'reminder',
+        title: subject,
+        body,
+        read: false,
+      })
+
+    if (notifError) throw notifError
+
+    if (sendEmail) {
+      const resendKey = Deno.env.get('RESEND_API_KEY')
+      if (resendKey) {
+        try {
+          await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${resendKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              from: 'HomeHub <noreply@homehub.app>',
+              to: ['user@example.com'],
+              subject,
+              text: body,
+            }),
+          })
+        } catch (e) {
+          console.error('Email send failed:', e)
+        }
+      } else {
+        console.log('No RESEND_API_KEY, skipping email')
+      }
+    }
+
+    return new Response(JSON.stringify({ success: true }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 200,
+    })
+  } catch (error) {
+    return new Response(JSON.stringify({ error: error.message }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 400,
+    })
+  }
+})

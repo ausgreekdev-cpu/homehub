@@ -59,10 +59,6 @@ verify_jwt = true
 enabled = true
 verify_jwt = true
 
-[functions.generate-claim-pdf]
-enabled = true
-verify_jwt = true
-
 [functions.stripe-webhook]
 enabled = true
 verify_jwt = false

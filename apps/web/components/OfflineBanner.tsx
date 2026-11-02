@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 export function OfflineBanner() {
   const online = useOnlineStatus();
   const [size, setSize] = useState(0);
-  useEffect(() => { setSize(getQueueSize()); const unsub = subscribe(setSize); return () => { unsub(); }; }, []);
+  useEffect(() => { getQueueSize().then(setSize); const unsub = subscribe(setSize); return () => { unsub(); }; }, []);
 
   async function syncNow() {
     const supabase = createClient();
