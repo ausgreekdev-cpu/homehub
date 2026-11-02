@@ -23,3 +23,16 @@
 
 ## Rollback
 - Revert the git commit and redeploy; Supabase migrations are forward-only (write a new migration to revert schema).
+
+## Production Deployment Checklist (Phase 7)
+- [ ] Create production Supabase project (separate from dev)
+- [ ] Apply all migrations to production
+- [ ] Deploy all Edge Functions to production
+- [ ] Set production secrets (OPENAI_API_KEY, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, RESEND_API_KEY)
+- [ ] Create storage buckets in production
+- [ ] Apply storage RLS policies
+- [ ] Deploy frontend to Vercel/Netlify with production env vars
+- [ ] Configure Stripe webhook endpoint for production
+- [ ] Set up Sentry DSN
+- [ ] Configure uptime monitoring (BetterStack/UptimeRobot)
+- [ ] Test critical flows in production
