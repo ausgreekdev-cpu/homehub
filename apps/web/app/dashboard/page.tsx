@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/client';
 import { NotificationsBell } from '@/components/NotificationsBell';
 import { OfflineBanner } from '@/components/OfflineBanner';
 import { RoleSwitcher } from '@/components/RoleSwitcher';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import Link from 'next/link';
 
 export default function DashboardPage() {
@@ -43,6 +44,7 @@ export default function DashboardPage() {
           <RoleSwitcher />
         </div>
         <div className="flex items-center gap-3">
+          <LanguageSwitcher />
           <NotificationsBell />
           <button onClick={async () => { const s = createClient(); await s.auth.signOut(); window.location.href = '/'; }} className="text-sm text-slate-600 underline">Sign out</button>
         </div>
