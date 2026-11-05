@@ -81,17 +81,27 @@ function BillsTab({ propertyId }: { propertyId: string }) {
   const [amount, setAmount] = useState('');
   const [paying, setPaying] = useState<string | null>(null);
   const [paymentData, setPaymentData] = useState<{ splitId: string; clientSecret: string; amountCents: number } | null>(null);
+  const [search, setSearch] = useState('');
+  const [page, setPage] = useState(0);
+  const PAGE_SIZE = 20;
 
-  async function load() {
+  async function load(reset = true) {
     const supabase = createClient();
-    const { data } = await supabase.from('expenses').select('*').eq('property_id', propertyId).order('created_at', { ascending: false }) as { data: any };
-    setExpenses(data ?? []);
+    const from = reset ? 0 : page * PAGE_SIZE;
+    const { data } = await supabase.from('expenses').select('*').eq('property_id', propertyId).order('created_at', { ascending: false }).range(from, from + PAGE_SIZE - 1) as { data: any };
+    if (reset) {
+      setExpenses(data ?? []);
+      setPage(1);
+    } else {
+      setExpenses(prev => [...prev, ...(data ?? [])]);
+      setPage(prev => prev + 1);
+    }
     const map: Record<string, any[]> = {};
-    for (const e of data ?? []) {
+    for (const e of (reset ? (data ?? []) : [...expenses, ...(data ?? [])])) {
       const { data: sp } = await supabase.from('expense_splits').select('*').eq('expense_id', e.id) as { data: any };
       map[e.id] = sp ?? [];
     }
-    setSplitsByExpense(map);
+    setSplitsByExpense(prev => reset ? map : { ...prev, ...map });
   }
   useEffect(() => { load(); }, [propertyId]);
 
@@ -122,8 +132,16 @@ function BillsTab({ propertyId }: { propertyId: string }) {
     }
   }
 
+  const filteredExpenses = expenses.filter((x) => !search || x.title?.toLowerCase().includes(search.toLowerCase()))
+
   return (
     <div>
+      <input
+        className="border rounded p-2 mb-3 w-full text-sm"
+        placeholder="Search bills..."
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
       <form onSubmit={add} className="flex gap-2 mb-4">
         <input className="border rounded p-2 flex-1" placeholder="Bill title" value={title} onChange={(e) => setTitle(e.target.value)} required />
         <input className="border rounded p-2 w-32" placeholder="Amount" value={amount} onChange={(e) => setAmount(e.target.value)} required />
@@ -146,7 +164,7 @@ function BillsTab({ propertyId }: { propertyId: string }) {
         </div>
       )}
       <ul className="divide-y border rounded">
-        {expenses.map((x) => (
+        {filteredExpenses.map((x) => (
           <li key={x.id} className="p-3">
             <div className="flex justify-between">
               <span className="font-semibold">{x.title}</span>
@@ -168,8 +186,11 @@ function BillsTab({ propertyId }: { propertyId: string }) {
             )}
           </li>
         ))}
-        {expenses.length === 0 && <li className="p-3 text-slate-500">No bills yet.</li>}
+        {filteredExpenses.length === 0 && <li className="p-3 text-slate-500">No bills yet.</li>}
       </ul>
+      {expenses.length >= 20 && (
+        <button onClick={() => load(false)} className="mt-3 px-4 py-2 border rounded text-sm">Load more</button>
+      )}
     </div>
   );
 }
@@ -178,12 +199,32 @@ function InventoryTab({ propertyId }: { propertyId: string }) {
   const [items, setItems] = useState<any[]>([]);
   const [file, setFile] = useState<File | null>(null);
   const [scanning, setScanning] = useState(false);
+  const [search, setSearch] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('all');
 
-  async function load() {
+  const [page, setPage] = useState(0);
+  const PAGE_SIZE = 20;
+
+  async function load(reset = true) {
     const supabase = createClient();
-    const { data } = await supabase.from('inventory_items').select('*').eq('property_id', propertyId).order('created_at', { ascending: false }) as { data: any };
-    setItems(data ?? []);
+    const from = reset ? 0 : page * PAGE_SIZE;
+    const { data } = await supabase.from('inventory_items').select('*').eq('property_id', propertyId).order('created_at', { ascending: false }).range(from, from + PAGE_SIZE - 1) as { data: any };
+    if (reset) {
+      setItems(data ?? []);
+      setPage(1);
+    } else {
+      setItems(prev => [...prev, ...(data ?? [])]);
+      setPage(prev => prev + 1);
+    }
   }
+
+  const filteredItems = items.filter((it) => {
+    const matchesSearch = !search || it.name?.toLowerCase().includes(search.toLowerCase()) || it.brand?.toLowerCase().includes(search.toLowerCase()) || it.model_number?.toLowerCase().includes(search.toLowerCase())
+    const matchesCategory = categoryFilter === 'all' || it.category === categoryFilter
+    return matchesSearch && matchesCategory
+  })
+
+  const categories = Array.from(new Set(items.map(i => i.category)))
   useEffect(() => { load(); }, [propertyId]);
 
   async function scan() {
@@ -288,8 +329,26 @@ function InventoryTab({ propertyId }: { propertyId: string }) {
           }} />
         </label>
       </div>
+      <div className="mb-3 flex gap-2">
+        <input
+          className="border rounded p-2 flex-1 text-sm"
+          placeholder="Search items..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <select
+          className="border rounded p-2 text-sm"
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+        >
+          <option value="all">All categories</option>
+          {categories.map((c) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
+      </div>
       <ul className="divide-y border rounded">
-        {items.map((it) => (
+        {filteredItems.map((it) => (
           <li key={it.id} className="p-3">
             <div className="font-semibold">{it.name} {it.brand ? `· ${it.brand}` : ''}</div>
             <div className="text-sm text-slate-600">
@@ -314,8 +373,13 @@ function InventoryTab({ propertyId }: { propertyId: string }) {
             </div>
           </li>
         ))}
-        {items.length === 0 && <li className="p-3 text-slate-500">No inventory yet. Scan a photo to start.</li>}
+        {filteredItems.length === 0 && <li className="p-3 text-slate-500">No inventory yet. Scan a photo to start.</li>}
       </ul>
+      {items.length >= 20 && (
+        <button onClick={() => load(false)} className="mt-3 px-4 py-2 border rounded text-sm">
+          Load more
+        </button>
+      )}
     </div>
   );
 }
@@ -327,6 +391,8 @@ function MaintenanceTab({ propertyId }: { propertyId: string }) {
   const [desc, setDesc] = useState('');
   const [quoteAmount, setQuoteAmount] = useState<Record<string, string>>({});
   const [invoiceAmount, setInvoiceAmount] = useState<Record<string, string>>({});
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
 
   async function load() {
     const supabase = createClient();
@@ -431,15 +497,40 @@ function MaintenanceTab({ propertyId }: { propertyId: string }) {
   const isManager = role === 'landlord' || role === 'agent';
   const isContractor = role === 'contractor';
 
+  const filteredTickets = tickets.filter((t) => {
+    const matchesSearch = !search || t.title?.toLowerCase().includes(search.toLowerCase()) || t.description?.toLowerCase().includes(search.toLowerCase())
+    const matchesStatus = statusFilter === 'all' || t.status === statusFilter
+    return matchesSearch && matchesStatus
+  })
+
   return (
     <div>
+      <div className="mb-3 flex gap-2">
+        <input
+          className="border rounded p-2 flex-1 text-sm"
+          placeholder="Search tickets..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+        <select
+          className="border rounded p-2 text-sm"
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+        >
+          <option value="all">All statuses</option>
+          <option value="open">Open</option>
+          <option value="quoted">Quoted</option>
+          <option value="in_progress">In Progress</option>
+          <option value="completed">Completed</option>
+        </select>
+      </div>
       <form onSubmit={add} className="space-y-2 mb-4">
         <input className="w-full border rounded p-2" placeholder="Issue title" value={title} onChange={(e) => setTitle(e.target.value)} required />
         <textarea className="w-full border rounded p-2" placeholder="Description" value={desc} onChange={(e) => setDesc(e.target.value)} />
         <button className="bg-slate-900 text-white rounded px-4 py-2">Raise ticket</button>
       </form>
       <ul className="divide-y border rounded">
-        {tickets.map((t) => (
+        {filteredTickets.map((t) => (
           <li key={t.id} className="p-3">
             <div className="font-semibold">{t.title} <span className="text-xs text-slate-500">· {t.status} · {t.priority}</span></div>
             <div className="text-sm text-slate-600">{t.description}</div>
