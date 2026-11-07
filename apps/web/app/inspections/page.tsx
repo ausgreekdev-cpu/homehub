@@ -60,6 +60,7 @@ export default function InspectionsPage() {
                 <th className="text-left p-3">Type</th>
                 <th className="text-left p-3">Date</th>
                 <th className="text-center p-3">Status</th>
+                <th className="text-center p-3">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -69,6 +70,7 @@ export default function InspectionsPage() {
                   <td className="p-3 capitalize">{i.type.replace('_', ' ')}</td>
                   <td className="p-3">{i.scheduled_date || '-'}</td>
                   <td className="p-3 text-center"><span className="px-2 py-1 bg-slate-100 rounded text-xs">{i.status}</span></td>
+                  <td className="p-3 text-center"><a href={`/inspections/${i.id}`} className="text-blue-600 text-sm underline">View</a></td>
                 </tr>
               ))}
               {inspections.length === 0 && <tr><td colSpan={4} className="p-4 text-center text-slate-500">No inspections scheduled.</td></tr>}
