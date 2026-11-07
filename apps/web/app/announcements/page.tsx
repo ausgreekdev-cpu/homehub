@@ -22,7 +22,10 @@ export default function AnnouncementsPage() {
     e.preventDefault()
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
-    await supabase.from('announcements').insert({ ...form, sent_by: user?.id })
+    const { data } = await supabase.functions.invoke('send-announcement', {
+      body: { propertyId: form.property_id, title: form.title, content: form.content, sentBy: user?.id }
+    })
+    alert(`Announcement sent to ${data?.recipientCount || 0} recipients`)
     setShowForm(false)
     setForm({ property_id: '', title: '', content: '' })
     load()
