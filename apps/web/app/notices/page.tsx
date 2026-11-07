@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { NOTICE_TEMPLATES } from '@/lib/noticeTemplates'
 
 export default function NoticesPage() {
   const [notices, setNotices] = useState<any[]>([])
@@ -39,7 +40,11 @@ export default function NoticesPage() {
       {showForm && (
         <form onSubmit={create} className="border rounded p-4 mb-6 space-y-3">
           <input className="w-full border rounded p-2" placeholder="Property ID" value={form.property_id} onChange={e => setForm({...form, property_id: e.target.value})} required />
-          <select className="w-full border rounded p-2" value={form.type} onChange={e => setForm({...form, type: e.target.value})}>
+          <select className="w-full border rounded p-2" value={form.type} onChange={e => {
+            const t = e.target.value
+            const tmpl = NOTICE_TEMPLATES[t]
+            setForm({...form, type: t, title: tmpl?.title || form.title, content: tmpl?.content || form.content})
+          }}>
             <option value="entry_notice">Entry Notice (24h)</option>
             <option value="rent_increase">Rent Increase</option>
             <option value="termination">Termination</option>
