@@ -1,10 +1,16 @@
 [build]
   base = "apps/web"
   command = "cd ../.. && pnpm install && pnpm --filter @homehub/web build"
-  publish = "apps/web/.next"
+  publish = ".next"
 
 [build.environment]
   NODE_VERSION = "20"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = false
