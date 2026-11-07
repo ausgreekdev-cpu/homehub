@@ -8,7 +8,10 @@ import { NotificationsBell } from '@/components/NotificationsBell';
 import { OfflineBanner } from '@/components/OfflineBanner';
 import { enqueue } from '@/lib/offlineQueue';
 import { StripePaymentForm } from '@/components/StripePaymentForm';
+import { calculateDepreciation } from '@/lib/depreciation';
+import { getNextOccurrence } from '@/lib/rrule';
 import { PlaidLinkButton } from '@/components/PlaidLinkButton';
+import { RateVendorModal } from '@/components/RateVendorModal';
 
 function ItemPhoto({ path }: { path: string }) {
   const [url, setUrl] = useState<string | null>(null);
@@ -353,6 +356,7 @@ function InventoryTab({ propertyId }: { propertyId: string }) {
             <div className="font-semibold">{it.name} {it.brand ? `· ${it.brand}` : ''}</div>
             <div className="text-sm text-slate-600">
               {it.category} · {it.condition} · ${((it.replacement_value_cents ?? 0) / 100).toFixed(2)} est. replacement
+              {it.purchase_price_cents && it.purchase_date ? ` · current value: $${(calculateDepreciation(it.purchase_price_cents, it.purchase_date).currentValueCents / 100).toFixed(2)}` : ''}
               {it.model_number ? ` · model ${it.model_number}` : ''}
               {it.serial_number ? ` · SN ${it.serial_number}` : ''}
               {it.purchase_price_cents ? ` · purchased $${(it.purchase_price_cents/100).toFixed(2)}` : ''}
@@ -393,6 +397,7 @@ function MaintenanceTab({ propertyId }: { propertyId: string }) {
   const [invoiceAmount, setInvoiceAmount] = useState<Record<string, string>>({});
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [ratingTicket, setRatingTicket] = useState<any>(null);
 
   async function load() {
     const supabase = createClient();
@@ -554,12 +559,21 @@ function MaintenanceTab({ propertyId }: { propertyId: string }) {
                 </>
               )}
               {isManager && t.status === 'completed' && <button onClick={() => updateStatus(t.id, 'invoiced')} className="border rounded px-2 py-1">Mark invoiced</button>}
+              {isManager && t.status === 'completed' && <button onClick={() => setRatingTicket(t)} className="border rounded px-2 py-1">Rate</button>}
               {isManager && t.status === 'invoiced' && <button onClick={() => updateStatus(t.id, 'closed')} className="border rounded px-2 py-1">Close</button>}
             </div>
           </li>
         ))}
         {tickets.length === 0 && <li className="p-3 text-slate-500">No tickets yet.</li>}
       </ul>
+      {ratingTicket && (
+        <RateVendorModal
+          ticketId={ratingTicket.id}
+          contractorId={ratingTicket.assigned_contractor_id || ''}
+          onClose={() => setRatingTicket(null)}
+          onRated={() => { setRatingTicket(null); load(); }}
+        />
+      )}
     </div>
   );
 }
@@ -865,6 +879,7 @@ function ChoresTab({ propertyId }: { propertyId: string }) {
   const [chores, setChores] = useState<any[]>([]);
   const [title, setTitle] = useState('');
   const [members, setMembers] = useState('');
+  const [rrule, setRrule] = useState('');
 
   async function load() {
     const supabase = createClient();
@@ -878,10 +893,10 @@ function ChoresTab({ propertyId }: { propertyId: string }) {
     const supabase = createClient();
     const ids = members.split(',').map((s) => s.trim()).filter(Boolean);
     const { error } = await supabase.from('chores').insert({
-      property_id: propertyId, title, rotation_member_ids: ids, current_assignee: ids[0] ?? null,
+      property_id: propertyId, title, rotation_member_ids: ids, current_assignee: ids[0] ?? null, rrule: rrule || null,
     });
     if (error) { alert(error.message); return; }
-    setTitle(''); setMembers('');
+    setTitle(''); setMembers(''); setRrule('');
     load();
   }
 
@@ -893,6 +908,20 @@ function ChoresTab({ propertyId }: { propertyId: string }) {
     const idx = ids.indexOf(chore?.current_assignee);
     const next = ids.length ? ids[(idx + 1) % ids.length] : null;
     await supabase.from('chores').update({ status: 'done', completed_by: user?.id, completed_at: new Date().toISOString(), current_assignee: next }).eq('id', choreId);
+
+    // Create next occurrence for recurring chores
+    if (chore?.rrule) {
+      const nextDate = getNextOccurrence(new Date().toISOString().split('T')[0] || '', (chore!.rrule || '') as string);
+      await supabase.from('chores').insert({
+        property_id: propertyId,
+        title: chore.title,
+        rotation_member_ids: ids,
+        current_assignee: ids[0] ?? null,
+        rrule: chore.rrule,
+        due_date: nextDate,
+        status: 'pending',
+      });
+    }
     load();
   }
 
@@ -901,14 +930,21 @@ function ChoresTab({ propertyId }: { propertyId: string }) {
       <form onSubmit={add} className="flex flex-wrap gap-2 mb-4">
         <input className="border rounded p-2 flex-1" placeholder="Chore title" value={title} onChange={(e) => setTitle(e.target.value)} required />
         <input className="border rounded p-2 flex-1" placeholder="Member UUIDs (comma-separated)" value={members} onChange={(e) => setMembers(e.target.value)} />
+        <select className="border rounded p-2" value={rrule} onChange={(e) => setRrule(e.target.value)}>
+          <option value="">No repeat</option>
+          <option value="FREQ=DAILY;INTERVAL=1">Daily</option>
+          <option value="FREQ=WEEKLY;INTERVAL=1">Weekly</option>
+          <option value="FREQ=MONTHLY;INTERVAL=1">Monthly</option>
+          <option value="FREQ=YEARLY;INTERVAL=1">Yearly</option>
+        </select>
         <button className="bg-slate-900 text-white rounded px-4 py-2">Add chore</button>
       </form>
       <ul className="divide-y border rounded">
         {chores.map((c) => (
           <li key={c.id} className="p-3 flex justify-between items-center">
             <div>
-              <div className="font-semibold">{c.title} <span className="text-xs text-slate-500">· {c.status}</span></div>
-              <div className="text-xs text-slate-500">Assignee: {c.current_assignee ?? '—'}</div>
+              <div className="font-semibold">{c.title} <span className="text-xs text-slate-500">· {c.status}</span>{c.rrule ? ' 🔄' : ''}</div>
+              <div className="text-xs text-slate-500">Assignee: {c.current_assignee ?? '—'}{c.rrule ? ` · repeats ${c.rrule.split(';')[0].replace('FREQ=', '').toLowerCase()}` : ''}</div>
             </div>
             {c.status !== 'done' && <button onClick={() => complete(c.id)} className="border rounded px-2 py-1 text-xs">Mark done</button>}
           </li>

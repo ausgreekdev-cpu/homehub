@@ -18,6 +18,7 @@ export default function ReportsPage() {
   const [csv, setCsv] = useState('')
   const [rentRoll, setRentRoll] = useState<RentRollRow[]>([])
   const [ownerStatement, setOwnerStatement] = useState<any>(null)
+  const [plReport, setPlReport] = useState<any>(null)
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7))
 
   useEffect(() => {
@@ -65,6 +66,16 @@ export default function ReportsPage() {
     setLoading(false)
   }
 
+  async function generatePL() {
+    setLoading(true)
+    const supabase = createClient()
+    const { data } = await supabase.functions.invoke('generate-pl', {
+      body: { propertyId }
+    })
+    setPlReport(data?.report || null)
+    setLoading(false)
+  }
+
   async function downloadCsv() {
     const blob = new Blob([csv], { type: 'text/csv' })
     const url = window.URL.createObjectURL(blob)
@@ -106,7 +117,19 @@ export default function ReportsPage() {
         <div className="border rounded p-4">
           <h2 className="font-semibold mb-2">P&L Statement</h2>
           <p className="text-sm text-slate-600 mb-4">Income vs expenses</p>
-          <button className="px-4 py-2 border rounded text-sm">Generate</button>
+          <button onClick={generatePL} disabled={loading || !propertyId} className="px-4 py-2 border rounded text-sm disabled:opacity-50">
+            {loading ? '...' : 'Generate'}
+          </button>
+          {plReport && (
+            <div className="mt-3 text-sm bg-slate-50 p-3 rounded">
+              <div>Income: ${(plReport.income / 100).toFixed(2)}</div>
+              <div>Expenses: ${(plReport.totalExpenses / 100).toFixed(2)}</div>
+              <div className="font-semibold">NOI: ${(plReport.netOperatingIncome / 100).toFixed(2)}</div>
+              {Object.entries(plReport.byCategory || {}).map(([cat, amt]: [string, any]) => (
+                <div key={cat} className="text-xs text-slate-500 ml-2">{cat}: ${(amt / 100).toFixed(2)}</div>
+              ))}
+            </div>
+          )}
         </div>
         <div className="border rounded p-4">
           <h2 className="font-semibold mb-2">Owner Statement</h2>
