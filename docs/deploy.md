@@ -1,38 +1,55 @@
-# Deploying HomeHub
+# Deploying HomeHub (Phase 17)
 
-## Backend (Supabase)
-1. Create a Supabase project (region closest to users).
-2. Link locally: `supabase link --project-ref <ref>`.
-3. Push schema: `supabase db push`.
-4. Deploy functions: `supabase functions deploy` (all functions in `supabase/functions`).
-5. Create storage buckets: `inventory`, `receipts`, `documents`, `condition-reports` (public/private as needed; RLS policies apply).
-6. Set function secrets: `supabase secrets set OPENAI_API_KEY=... STRIPE_SECRET_KEY=... STRIPE_WEBHOOK_SECRET=... PLAID_CLIENT_ID=... PLAID_SECRET=... PLAID_ENV=production`.
-7. Configure Auth: site URL + redirect URLs (`https://<your-domain>`, `homehub://`).
+## Important
+- Deploy to a **separate** Netlify/Vercel site for HomeHub (do not mix with Lux or other projects).
+- This repo is a pnpm monorepo. Netlify config is in `netlify.toml` (base `apps/web`).
 
-## Frontend (Vercel or Netlify)
-- Root directory: `apps/web`
-- Build command: `pnpm install && pnpm --filter @homehub/web build` (or `cd ../.. && pnpm install && pnpm --filter @homehub/web build`)
-- Output: `apps/web/.next`
-- Env vars: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `NEXT_PUBLIC_APP_URL`, `NEXT_PUBLIC_DEFAULT_CURRENCY`.
+## Netlify (web)
+1. **New site** → Import `ausgreekdev-cpu/homehub` (branch `main`).
+2. Confirm settings (from `netlify.toml`):
+   - Base directory: `apps/web`
+   - Build command: `cd ../.. && pnpm install && pnpm --filter @homehub/web build`
+   - Publish directory: `.next` (managed with `@netlify/plugin-nextjs`)
+3. **Environment variables** (Site settings → Environment variables):
+   - `NEXT_PUBLIC_SUPABASE_URL=https://rvivsgnydcfudohxixkf.supabase.co` (or your prod project)
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon key>`
+   - `SUPABASE_SERVICE_ROLE_KEY=<service role key>` (server-side only; needed for API routes/functions that use it)
+   - `NEXT_PUBLIC_APP_URL=<your Netlify URL>`
+   - Optional: `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `OPENAI_API_KEY`, `PLAID_*`, `RESEND_API_KEY`
+4. If Netlify UI has custom overrides (e.g., a wrong package path), clear them so `netlify.toml` applies.
+5. Deploy. Verify `/api/health` returns `{ ok: true }`.
 
-## Post-deploy
-- Set Stripe webhook endpoint to `https://<supabase>/functions/v1/stripe-webhook`.
-- Schedule `send-reminder` and `warranty-check` via Supabase cron (pg_cron) or external scheduler.
-- Run RLS tests against production with a test tenant/landlord pair (see `tests/README.md`).
-- Enable PWA install prompt (already configured via next-pwa).
+## Supabase backend
+- Current project ref: `rvivsgnydcfudohxixkf` (ap-southeast-2). For true production isolation, create a separate production Supabase project.
+1. `supabase link --project-ref <ref>`
+2. `supabase db push` (apply migrations in `supabase/migrations/`)
+3. `supabase functions deploy` (deploy all functions in `supabase/functions/`)
+4. Set secrets: `supabase secrets set OPENAI_API_KEY=... STRIPE_SECRET_KEY=... STRIPE_WEBHOOK_SECRET=... PLAID_CLIENT_ID=... PLAID_SECRET=... RESEND_API_KEY=...`
+5. Create/configure storage buckets as needed (`inventory`, `receipts`, `documents`, `condition-reports`) and verify RLS policies.
+6. Auth: set Site URL and Redirect URLs to your production domain(s) and mobile deep links (`homehub://`).
+7. Stripe webhook: point to `https://<project-ref>.supabase.co/functions/v1/stripe-webhook`.
 
-## Rollback
-- Revert the git commit and redeploy; Supabase migrations are forward-only (write a new migration to revert schema).
+## Mobile (Expo) - Phase 17 foundation
+- Location: `apps/mobile` (Expo Router, Supabase auth + data fetch for core tabs).
+- Copy `apps/mobile/.env.example` to `.env` with `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_ANON_KEY`.
+- Run: `pnpm --filter @homehub/mobile start`
+- Next: push notifications, rent payment flow, create maintenance requests, EAS build/config.
 
-## Production Deployment Checklist (Phase 7)
-- [ ] Create production Supabase project (separate from dev)
-- [ ] Apply all migrations to production
-- [ ] Deploy all Edge Functions to production
-- [ ] Set production secrets (OPENAI_API_KEY, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, RESEND_API_KEY)
-- [ ] Create storage buckets in production
-- [ ] Apply storage RLS policies
-- [ ] Deploy frontend to Vercel/Netlify with production env vars
-- [ ] Configure Stripe webhook endpoint for production
-- [ ] Set up Sentry DSN
-- [ ] Configure uptime monitoring (BetterStack/UptimeRobot)
-- [ ] Test critical flows in production
+## Post-deploy checks
+- [ ] Web loads and `/api/health` is OK
+- [ ] Login/signup works against production Supabase
+- [ ] RLS works for tenant/landlord roles
+- [ ] Stripe webhook configured (if using payments)
+- [ ] Supabase Auth redirect URLs include production domain
+- [ ] Cron/schedulers for reminders/warranty/arrears as needed
+
+## Phase 17 status (code)
+- [x] Netlify/Vercel config, env examples, Node 20
+- [x] Next.js upgraded to patched version (CVE fix)
+- [x] Lockfile fixed for mobile workspace
+- [x] `/api/health` endpoint
+- [x] Mobile app foundation (auth + Supabase data for dashboard/payments/maintenance/messages)
+- [ ] Actual deploy to a separate Netlify site (requires your Netlify account)
+- [ ] Production Supabase project separation (optional but recommended)
+- [ ] Sentry/uptime monitoring setup
+- [ ] Real third-party integrations (Stripe Connect payouts end-to-end, Plaid, screening, e-sign, Xero sync)

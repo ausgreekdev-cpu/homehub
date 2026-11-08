@@ -1,17 +1,12 @@
 # HomeHub Mobile (Expo)
 
-React Native app for tenants and landlords. Shares types from `@homehub/shared`.
-
 ## Setup
-```bash
-cd apps/mobile
-pnpm install
-pnpm start
-```
+1. Copy `.env.example` to `.env` and set Supabase values.
+2. From repo root: `pnpm install`
+3. Run: `pnpm --filter @homehub/mobile start`
 
-## Features
-- Dashboard
-- Rent payments
-- Maintenance requests
-- Messages
-- Push notifications (ready for setup)
+## Features (Phase 17 foundation)
+- Supabase auth (email/password)
+- Dashboard, Payments (bills), Maintenance requests, Messages/notifications (read from Supabase)
+
+Push notifications and deeper flows (pay rent, create maintenance request) are next.

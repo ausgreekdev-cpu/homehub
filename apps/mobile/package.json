@@ -14,6 +14,9 @@
     "react": "18.2.0",
     "react-native": "0.74.0",
     "@supabase/supabase-js": "^2.45.0",
-    "@homehub/shared": "workspace:*"
+    "@homehub/shared": "workspace:*",
+    "@react-native-async-storage/async-storage": "1.23.1",
+    "react-native-url-polyfill": "^2.0.0",
+    "expo-constants": "~16.0.0"
   }
 }
