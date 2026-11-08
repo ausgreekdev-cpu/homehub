@@ -68,3 +68,44 @@
   - `https://<your-domain>/api/health?deep=1` (includes lightweight Supabase auth health check; use a reasonable interval)
 - Recommended alerts: downtime, high latency, and 5xx rate.
 - Also monitor Supabase project health and Edge Function errors from the Supabase dashboard.
+
+## Real integrations (Phase 18 code-complete; requires API keys/accounts)
+All integrations are implemented with **live mode when configured** and safe stub/fallback behavior where applicable. Apply migration `0018_integration_tables.sql` and redeploy affected Edge Functions.
+
+### Stripe Connect payouts (end-to-end)
+- Functions: `stripe-connect-onboard`, `create-payout`, `stripe-connect-webhook`; `stripe-webhook` verifies signatures.
+- Env: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_CONNECT_WEBHOOK_SECRET` (optional separate secret), `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `SITE_URL`/`NEXT_PUBLIC_APP_URL`.
+- Setup: create Stripe Connect (Express) platform; add webhook endpoints for account/transfer/payout events (`stripe-connect-webhook`) and payment intents (`stripe-webhook`). Use `ALLOW_INSECURE_WEBHOOKS=true` only for local dev.
+- `create-payout` requires authenticated landlord/agent membership and creates a Stripe transfer to the connected account.
+
+### Plaid (bank linking)
+- Web: `POST /api/plaid/create-link-token`, `POST /api/plaid/exchange-token` (live when `PLAID_*` set; stub otherwise).
+- Edge Function: `exchange-plaid-token` supports live exchange via Plaid REST API.
+- Env: `PLAID_CLIENT_ID`, `PLAID_SECRET`, `PLAID_ENV` (`sandbox|development|production`), `PLAID_WEBHOOK_URL`.
+- Data: stored in `bank_accounts` (migration 0018). **Access tokens are sensitive** - restrict access; consider vault/encryption for production hardening.
+
+### Tenant screening
+- Function: `request-screening` (authz: landlord/agent). Supports a generic provider API adapter.
+- Env: `SCREENING_API_URL`, `SCREENING_API_KEY`, `SCREENING_PROVIDER`, `SCREENING_WEBHOOK_URL`.
+- Note: TransUnion SmartMove typically requires partner onboarding/credentials; configure via the adapter or set provider-specific integration once credentials are available.
+
+### E-signatures
+- Function: `send-for-signature` (DocuSign integration path).
+- Env: `ESIGN_PROVIDER=docusign`, `DOCUSIGN_BASE_URL`, `DOCUSIGN_ACCOUNT_ID`, `DOCUSIGN_ACCESS_TOKEN` (or implement JWT grant for production), plus `documentBase64` in request.
+- Status falls back to `stub/pending_config` when not fully configured.
+
+### Xero (two-way sync)
+- Web OAuth/API: `GET /api/xero/connect`, `GET /api/xero/callback`, `POST /api/xero/sync` (push expenses to Xero ACCPAY drafts; pull payments foundation; two-way mode supported).
+- Edge Function: `export-xero` remains CSV export (`mode="csv"`); API sync via web route.
+- Env: `XERO_CLIENT_ID`, `XERO_CLIENT_SECRET`, `XERO_REDIRECT_URI`, `XERO_SCOPES`, `XERO_EXPENSE_ACCOUNT_CODE`.
+- Data: `xero_connections` (migration 0018). Token refresh handled server-side.
+
+### Autopay
+- Function: `process-autopay` hardened (Stripe PaymentIntents with idempotency/off-session metadata, payment records, status handling). Requires valid `autopay_settings.payment_method_id` setup for customers/payment methods.
+
+### Apply migration & deploy
+```bash
+supabase db push
+supabase functions deploy stripe-connect-onboard stripe-connect-webhook create-payout stripe-webhook exchange-plaid-token request-screening send-for-signature export-xero process-autopay
+supabase secrets set STRIPE_SECRET_KEY=... STRIPE_WEBHOOK_SECRET=... PLAID_CLIENT_ID=... PLAID_SECRET=... XERO_CLIENT_ID=... XERO_CLIENT_SECRET=...
+```
