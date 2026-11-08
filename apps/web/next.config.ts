@@ -1,5 +1,13 @@
 import type { NextConfig } from 'next';
-import withPWA from 'next-pwa';
+import withPWAInit from 'next-pwa';
+import { withSentryConfig } from '@sentry/nextjs';
+
+const withPWA = withPWAInit({
+  dest: 'public',
+  register: true,
+  skipWaiting: true,
+  disable: process.env.NODE_ENV === 'development',
+});
 
 const baseConfig: NextConfig = {
   reactStrictMode: true,
@@ -7,9 +15,14 @@ const baseConfig: NextConfig = {
   images: { remotePatterns: [{ protocol: 'https', hostname: '**.supabase.co' }] },
 };
 
-export default withPWA({
-  dest: 'public',
-  register: true,
-  skipWaiting: true,
-  disable: process.env.NODE_ENV === 'development',
-})(baseConfig);
+const configWithPWA = withPWA(baseConfig as any);
+
+export default withSentryConfig(configWithPWA, {
+  // Only upload sourcemaps when auth token is configured
+  silent: true,
+  sourcemaps: {
+    disable: !process.env.SENTRY_AUTH_TOKEN,
+    deleteSourcemapsAfterUpload: true,
+  },
+  hideSourceMaps: true,
+});

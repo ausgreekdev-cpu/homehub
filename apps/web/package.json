@@ -28,7 +28,8 @@
     "react-plaid-link": "^5.0.0",
     "tailwind-merge": "^2.5.4",
     "zod": "^3.23.8",
-    "zustand": "^5.0.0"
+    "zustand": "^5.0.0",
+    "@sentry/nextjs": "^8.55.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.64.1",

@@ -51,5 +51,20 @@
 - [x] Mobile app foundation (auth + Supabase data for dashboard/payments/maintenance/messages)
 - [ ] Actual deploy to a separate Netlify site (requires your Netlify account)
 - [ ] Production Supabase project separation (optional but recommended)
-- [ ] Sentry/uptime monitoring setup
+- [x] Sentry integration (web) + uptime monitoring docs/health endpoint
 - [ ] Real third-party integrations (Stripe Connect payouts end-to-end, Plaid, screening, e-sign, Xero sync)
+
+## Sentry (error monitoring)
+- Web uses `@sentry/nextjs` (configured in `apps/web/next.config.ts`, `sentry.*.config.ts`, `instrumentation.ts`).
+- Set env vars in your hosting provider:
+  - `NEXT_PUBLIC_SENTRY_DSN` (required to enable client/server reporting)
+  - `SENTRY_AUTH_TOKEN` (optional, for source map upload in CI/build)
+  - `SENTRY_ORG`, `SENTRY_PROJECT` (if using source map upload)
+- Without a DSN, Sentry stays effectively disabled. Builds work without `SENTRY_AUTH_TOKEN`.
+
+## Uptime monitoring
+- Configure an external monitor (BetterStack, UptimeRobot, Checkly, etc.) against:
+  - `https://<your-domain>/api/health` (basic)
+  - `https://<your-domain>/api/health?deep=1` (includes lightweight Supabase auth health check; use a reasonable interval)
+- Recommended alerts: downtime, high latency, and 5xx rate.
+- Also monitor Supabase project health and Edge Function errors from the Supabase dashboard.
