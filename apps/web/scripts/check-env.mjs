@@ -1,15 +1,28 @@
-const required = ['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_ANON_KEY'];
-const recommended = ['NEXT_PUBLIC_APP_URL', 'SUPABASE_SERVICE_ROLE_KEY'];
+// Resolve env var names: support both legacy (NEXT_PUBLIC_SUPABASE_ANON_KEY)
+// and new Supabase naming (SUPABASE_PUBLISHABLE_KEY / SUPABASE_SECRET_KEY).
+const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_PUBLISHABLE_KEY;
+const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
 
-const missing = required.filter((k) => !process.env[k]);
-const missingRecommended = recommended.filter((k) => !process.env[k]);
+const errors = [];
+if (!supabaseUrl) errors.push('NEXT_PUBLIC_SUPABASE_URL (or SUPABASE_URL)');
+if (!anonKey) errors.push('NEXT_PUBLIC_SUPABASE_ANON_KEY (or SUPABASE_PUBLISHABLE_KEY)');
+if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY && process.env.SUPABASE_PUBLISHABLE_KEY) {
+  console.warn('\n⚠️  SUPABASE_PUBLISHABLE_KEY is set but NEXT_PUBLIC_SUPABASE_ANON_KEY is not.');
+  console.warn('   Client-side Supabase requires NEXT_PUBLIC_SUPABASE_ANON_KEY.');
+  console.warn('   Set NEXT_PUBLIC_SUPABASE_ANON_KEY = your publishable key value in Netlify.\n');
+}
 
-if (missing.length) {
-  console.error(`\n❌ Missing required env vars: ${missing.join(', ')}`);
-  console.error('Set them in Netlify (Site settings → Environment variables) or locally in .env.local.\n');
+if (errors.length) {
+  console.error(`\n❌ Missing required env vars: ${errors.join(', ')}`);
+  console.error('Set them in Netlify (Site settings → Environment variables).\n');
   process.exit(1);
 }
-if (missingRecommended.length) {
-  console.warn(`\n⚠️  Missing recommended env vars: ${missingRecommended.join(', ')}\n`);
+
+// Warn about service role key (server-side only, needed for admin operations)
+if (!serviceKey) {
+  console.warn('\n⚠️  No service role/secret key found (SUPABASE_SERVICE_ROLE_KEY or SUPABASE_SECRET_KEY).');
+  console.warn('   Some server-side operations (admin writes, Edge Function calls) may fail.\n');
 }
+
 console.log('✅ Env check passed');
