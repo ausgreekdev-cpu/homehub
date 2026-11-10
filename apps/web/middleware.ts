@@ -1,6 +1,23 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
+const PUBLIC_PATHS = new Set([
+  '/',
+  '/login',
+  '/signup',
+  '/listings',
+  '/api/health',
+]);
+
+function isPublic(pathname: string) {
+  if (PUBLIC_PATHS.has(pathname)) return true;
+  if (pathname.startsWith('/apply/')) return true;
+  if (pathname.startsWith('/_next')) return true;
+  if (pathname.startsWith('/api/plaid/')) return false; // protected API
+  if (pathname.startsWith('/api/xero/')) return false;
+  return false;
+}
+
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
   const supabase = createServerClient(
@@ -17,7 +34,17 @@ export async function middleware(request: NextRequest) {
       },
     },
   );
-  await supabase.auth.getUser();
+
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const { pathname } = request.nextUrl;
+  if (!user && !isPublic(pathname)) {
+    const url = request.nextUrl.clone();
+    url.pathname = '/login';
+    url.searchParams.set('next', pathname);
+    return NextResponse.redirect(url);
+  }
+
   return response;
 }
 
