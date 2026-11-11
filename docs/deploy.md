@@ -109,3 +109,59 @@ supabase db push
 supabase functions deploy stripe-connect-onboard stripe-connect-webhook create-payout stripe-webhook exchange-plaid-token request-screening send-for-signature export-xero process-autopay
 supabase secrets set STRIPE_SECRET_KEY=... STRIPE_WEBHOOK_SECRET=... PLAID_CLIENT_ID=... PLAID_SECRET=... XERO_CLIENT_ID=... XERO_CLIENT_SECRET=...
 ```
+
+## Production Supabase setup (automated)
+Run `./scripts/setup-production.sh <project-ref>` to:
+1. Link to the project
+2. Push all migrations (including 0018)
+3. Deploy all Edge Functions
+4. Prompt for and set secrets
+5. Create storage buckets
+
+## RLS verification (landlord vs tenant)
+Run the automated RLS test suite:
+```bash
+SUPABASE_URL=https://<project>.supabase.co \
+SUPABASE_ANON_KEY=<publishable-key> \
+SUPABASE_SERVICE_ROLE_KEY=<secret-key> \
+pnpm test
+```
+
+The test suite (`tests/rls.test.ts`) creates test users (landlord + 2 tenants), seeds a property, and verifies:
+- Tenant can read expenses of own property
+- Non-member cannot read expenses
+- Tenant cannot update/delete/create property
+- Landlord can update property and create expenses
+- Tenant cannot read stripe_accounts of property
+- Non-member cannot read bank_accounts or xero_connections
+- Tenant cannot insert into arrears
+- All test data is cleaned up after tests
+
+### Manual RLS spot-checks (Supabase SQL editor)
+```sql
+-- Verify RLS is enabled on all tables
+SELECT schemaname, tablename, rowsecurity
+FROM pg_tables
+WHERE schemaname = 'public' AND rowsecurity = true
+ORDER BY tablename;
+
+-- Verify policies exist
+SELECT tablename, policyname, permissive, cmd
+FROM pg_policies
+WHERE schemaname = 'public'
+ORDER BY tablename, policyname;
+
+-- Test as a specific user (replace UUID)
+SET ROLE authenticated;
+SET request.jwt.claims = '{"sub": "<user-uuid>", "role": "authenticated"}';
+SELECT * FROM properties; -- should only return member properties
+RESET ROLE;
+```
+
+### Auth redirect URLs checklist
+In Supabase Dashboard → Auth → URL Configuration:
+- Site URL: `https://<your-netlify-domain>`
+- Redirect URLs (add all):
+  - `https://<your-netlify-domain>/**`
+  - `http://localhost:3000/**` (for local dev)
+  - `homehub://` (for mobile deep links)
