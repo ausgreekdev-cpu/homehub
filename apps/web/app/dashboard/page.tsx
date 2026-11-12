@@ -46,17 +46,19 @@ export default function DashboardPage() {
         <div className="flex items-center gap-3">
           <LanguageSwitcher />
           <NotificationsBell />
-          <button onClick={async () => { const s = createClient(); await s.auth.signOut(); window.location.href = '/'; }} className="text-sm text-slate-600 underline">Sign out</button>
+          <button onClick={async () => { const s = createClient(); await s.auth.signOut(); window.location.href = '/'; }} className="text-sm text-slate-600 underline" aria-label="Sign out of your account">Sign out</button>
         </div>
       </div>
 
-      <form onSubmit={createProperty} className="mb-8 flex gap-2">
-        <input className="border rounded p-2 flex-1" placeholder="Property name" value={name} onChange={(e) => setName(e.target.value)} required />
-        <input className="border rounded p-2 flex-1" placeholder="Address" value={address} onChange={(e) => setAddress(e.target.value)} required />
-        <button className="bg-slate-900 text-white rounded px-4">Add</button>
+      <form onSubmit={createProperty} className="mb-8 flex gap-2" aria-label="Add new property">
+        <label htmlFor="property-name" className="sr-only">Property name</label>
+        <input id="property-name" className="border rounded p-2 flex-1" placeholder="Property name" value={name} onChange={(e) => setName(e.target.value)} required aria-required="true" />
+        <label htmlFor="property-address" className="sr-only">Address</label>
+        <input id="property-address" className="border rounded p-2 flex-1" placeholder="Address" value={address} onChange={(e) => setAddress(e.target.value)} required aria-required="true" />
+        <button className="bg-slate-900 text-white rounded px-4" type="submit">Add property</button>
       </form>
 
-      {loading ? <p>Loading…</p> : (
+      {loading ? <p role="status" aria-live="polite">Loading properties…</p> : (
         <ul className="space-y-3">
           {properties.map((p) => (
             <li key={p.id} className="border rounded p-4 hover:bg-slate-50">
