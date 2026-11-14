@@ -1,6 +1,7 @@
 import type { NextConfig } from 'next';
 import withPWAInit from 'next-pwa';
 import { withSentryConfig } from '@sentry/nextjs';
+const withBundleAnalyzer = process.env.ANALYZE === 'true' ? require('@next/bundle-analyzer')({ enabled: true }) : (c: any) => c;
 
 const withPWA = withPWAInit({
   dest: 'public',
@@ -22,7 +23,9 @@ const baseConfig: NextConfig = {
 
 const configWithPWA = withPWA(baseConfig as any);
 
-export default withSentryConfig(configWithPWA, {
+const configWithAnalyzer = withBundleAnalyzer(configWithPWA);
+
+export default withSentryConfig(configWithAnalyzer, {
   // Only upload sourcemaps when auth token is configured
   silent: true,
   sourcemaps: {
