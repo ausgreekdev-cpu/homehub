@@ -13,6 +13,18 @@ export default function AnnouncementsPage() {
 
   useEffect(() => { load() }, [])
 
+  // Real-time subscription for new announcements
+  useEffect(() => {
+    const supabase = createClient()
+    const channel = supabase
+      .channel('announcements-realtime')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'announcements' }, () => {
+        load()
+      })
+      .subscribe()
+    return () => { supabase.removeChannel(channel) }
+  }, [])
+
   async function load() {
     const supabase = createClient()
     const { data } = await supabase.from('announcements').select('*, properties(name)').order('created_at', { ascending: false })
