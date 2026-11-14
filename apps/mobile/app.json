@@ -25,7 +25,8 @@
     },
     "plugins": [
       "expo-router",
-      "expo-notifications"
+      "expo-notifications",
+      "@stripe/stripe-react-native"
     ],
     "notification": {
       "icon": "./assets/notification-icon.png",

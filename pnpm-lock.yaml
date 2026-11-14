@@ -32,6 +32,9 @@ importers:
       '@react-native-async-storage/async-storage':
         specifier: 1.23.1
         version: 1.23.1(react-native@0.74.0(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(@types/react@18.3.31)(react@18.2.0))
+      '@stripe/stripe-react-native':
+        specifier: 0.38.0
+        version: 0.38.0(expo@51.0.39(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(react-native@0.74.0(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(@types/react@18.3.31)(react@18.2.0))(react@18.2.0))(react-native@0.74.0(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(@types/react@18.3.31)(react@18.2.0))(react@18.2.0)
       '@supabase/supabase-js':
         specifier: ^2.45.0
         version: 2.118.0(@opentelemetry/api@1.10.0)
@@ -2265,6 +2268,16 @@ packages:
   '@stripe/stripe-js@10.2.0':
     resolution: {integrity: sha512-C0F6LKxvsa9ONtxfJ4JG/vo8XjramVyy7tOZNZvoaZkw0M82OTm9LD3Ifcvw0QMDI7qPA14h+IP3qagkuC3b2Q==}
     engines: {node: '>=12.16'}
+
+  '@stripe/stripe-react-native@0.38.0':
+    resolution: {integrity: sha512-OK/FdF+2CRgiZEgVpql61Iz5K1x+OOVxP9WyCJeA39Cf7MK9EYSuNugoF+dZqXG4otDkUe1ffKYX2OiBU1qGKQ==}
+    peerDependencies:
+      expo: '>=46.0.9'
+      react: '*'
+      react-native: '*'
+    peerDependenciesMeta:
+      expo:
+        optional: true
 
   '@supabase/auth-js@2.118.0':
     resolution: {integrity: sha512-xWfPXyhS2KDSfAneMtI6p/tBnbdiz/5vaRKXEqUfzfC9WCniKr2Ds5o5G7RIGig0bom4z6wUY9zaV07WDVTfnQ==}
@@ -9503,6 +9516,13 @@ snapshots:
       react-dom: 19.0.0-rc-66855b96-20241106(react@19.0.0-rc-66855b96-20241106)
 
   '@stripe/stripe-js@10.2.0': {}
+
+  '@stripe/stripe-react-native@0.38.0(expo@51.0.39(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(react-native@0.74.0(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(@types/react@18.3.31)(react@18.2.0))(react@18.2.0))(react-native@0.74.0(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(@types/react@18.3.31)(react@18.2.0))(react@18.2.0)':
+    dependencies:
+      react: 18.2.0
+      react-native: 0.74.0(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(@types/react@18.3.31)(react@18.2.0)
+    optionalDependencies:
+      expo: 51.0.39(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(react-native@0.74.0(@babel/core@7.29.7)(@babel/preset-env@7.29.7(@babel/core@7.29.7))(@types/react@18.3.31)(react@18.2.0))(react@18.2.0)
 
   '@supabase/auth-js@2.118.0':
     dependencies:

@@ -31,6 +31,12 @@ eas build --profile production --platform all
 - Token stored in `push_tokens` table (Supabase)
 - Server-side dispatch via Supabase Edge Function (to be implemented)
 
+## Payment Flow
+- Stripe Payment Sheet integrated in payments tab
+- "Pay Now" button on unpaid bills
+- Payment recorded in Supabase after success
+- Requires EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY in .env
+
 ## Next Steps
 - Stripe Payment Sheet for rent payments
 - Image upload for maintenance requests

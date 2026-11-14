@@ -1,45 +1,50 @@
-import { serve } from 'https://deno.land/std@0.224.0/http/server.ts';
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import Stripe from 'https://esm.sh/stripe@17?target=deno';
-import { corsHeaders } from '../_shared/cors.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { corsHeaders } from '../_shared/cors.ts'
 
-serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+
   try {
-    const { splitId } = await req.json();
-    if (!splitId) throw new Error('splitId required');
-    const supabase = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+    const authHeader = req.headers.get('Authorization')
+    const supabase = createClient(Deno.env.get('SUPABASE_URL') ?? '', Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '', { global: { headers: authHeader ? { Authorization: authHeader } : {} } })
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
 
-    const { data: split, error: splitErr } = await supabase
-      .from('expense_splits').select('*, expenses(title, property_id, currency)').eq('id', splitId).single();
-    if (splitErr || !split) throw new Error('split not found');
+    const { billId, amountCents } = await req.json()
+    if (!billId || !amountCents || amountCents < 1) throw new Error('billId and amountCents required')
 
-    const remaining = split.share_cents - (split.paid_cents ?? 0);
-    if (remaining <= 0) throw new Error('already paid');
+    const stripeKey = Deno.env.get('STRIPE_SECRET_KEY')
+    if (!stripeKey) throw new Error('STRIPE_SECRET_KEY not configured')
 
-    const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, { apiVersion: '2024-06-20' });
-    const intent = await stripe.paymentIntents.create({
-      amount: remaining,
-      currency: (split.expenses?.currency ?? 'aud').toLowerCase(),
-      metadata: { splitId, expenseId: split.expense_id, propertyId: split.expenses?.property_id ?? '' },
-      description: `HomeHub: ${split.expenses?.title ?? 'Bill'} share`,
-    });
+    // Verify the bill exists and belongs to the user
+    const admin = createClient(Deno.env.get('SUPABASE_URL') ?? '', Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '')
+    const { data: bill } = await admin.from('bills').select('id, total_amount, status').eq('id', billId).maybeSingle()
+    if (!bill) throw new Error('Bill not found')
 
-    await supabase.from('payments').insert({
-      expense_id: split.expense_id,
-      split_id: splitId,
-      payer_id: split.user_id,
-      amount_cents: remaining,
-      currency: split.expenses?.currency ?? 'AUD',
-      provider: 'stripe',
-      provider_ref: intent.id,
-      status: 'pending',
-    });
+    const res = await fetch('https://api.stripe.com/v1/payment_intents', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${stripeKey}`,
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: new URLSearchParams({
+        amount: String(Math.round(amountCents)),
+        currency: 'aud',
+        'metadata[bill_id]': billId,
+        'metadata[user_id]': user.id,
+        'automatic_payment_methods[enabled]': 'true',
+      }),
+    })
+    const pi = await res.json()
+    if (!res.ok) throw new Error(pi?.error?.message || 'Stripe PaymentIntent creation failed')
 
-    return new Response(JSON.stringify({ clientSecret: intent.client_secret, paymentIntentId: intent.id, amountCents: remaining }), {
+    return new Response(JSON.stringify({ clientSecret: pi.client_secret, paymentIntentId: pi.id }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
-  } catch (e) {
-    return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    })
+  } catch (error: any) {
+    return new Response(JSON.stringify({ error: error.message || String(error) }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 400,
+    })
   }
-});
+})
