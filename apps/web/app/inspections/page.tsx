@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { AccessibleInput } from '@/components/AccessibleInput'
+import { AccessibleTextarea } from '@/components/AccessibleTextarea'
 
 export default function InspectionsPage() {
   const [inspections, setInspections] = useState<any[]>([])
@@ -31,27 +33,51 @@ export default function InspectionsPage() {
     <main className="p-8 max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Inspections</h1>
-        <button onClick={() => setShowForm(!showForm)} className="px-4 py-2 bg-slate-900 text-white rounded">
+        <button onClick={() => setShowForm(!showForm)} className="px-4 py-2 bg-slate-900 text-white rounded" aria-expanded={showForm}>
           {showForm ? 'Cancel' : 'Schedule Inspection'}
         </button>
       </div>
 
       {showForm && (
-        <form onSubmit={create} className="border rounded p-4 mb-6 space-y-3">
-          <input className="w-full border rounded p-2" placeholder="Property ID" value={form.property_id} onChange={e => setForm({...form, property_id: e.target.value})} required />
-          <select className="w-full border rounded p-2" value={form.type} onChange={e => setForm({...form, type: e.target.value})}>
-            <option value="move_in">Move-in</option>
-            <option value="move_out">Move-out</option>
-            <option value="routine">Routine</option>
-            <option value="interim">Interim</option>
-          </select>
-          <input className="w-full border rounded p-2" type="date" value={form.scheduled_date} onChange={e => setForm({...form, scheduled_date: e.target.value})} />
-          <textarea className="w-full border rounded p-2" placeholder="Notes" value={form.notes} onChange={e => setForm({...form, notes: e.target.value})} />
-          <button className="px-4 py-2 bg-slate-900 text-white rounded">Create</button>
+        <form aria-label="Schedule inspection" onSubmit={create} className="border rounded p-4 mb-6 space-y-4">
+          <AccessibleInput
+            label="Property ID"
+            value={form.property_id}
+            onChange={e => setForm({...form, property_id: e.target.value})}
+            required
+            placeholder="Enter property ID"
+          />
+          <div className="flex flex-col gap-1">
+            <label htmlFor="inspection-type" className="text-sm font-medium text-slate-700">Inspection Type</label>
+            <select
+              id="inspection-type"
+              className="w-full border rounded p-2"
+              value={form.type}
+              onChange={e => setForm({...form, type: e.target.value})}
+            >
+              <option value="move_in">Move-in</option>
+              <option value="move_out">Move-out</option>
+              <option value="routine">Routine</option>
+              <option value="interim">Interim</option>
+            </select>
+          </div>
+          <AccessibleInput
+            label="Scheduled Date"
+            type="date"
+            value={form.scheduled_date}
+            onChange={e => setForm({...form, scheduled_date: e.target.value})}
+          />
+          <AccessibleTextarea
+            label="Notes"
+            value={form.notes}
+            onChange={e => setForm({...form, notes: e.target.value})}
+            placeholder="Inspection notes"
+          />
+          <button className="px-4 py-2 bg-slate-900 text-white rounded" type="submit">Schedule Inspection</button>
         </form>
       )}
 
-      {loading ? <p className="text-slate-500">Loading...</p> : (
+      {loading ? <p className="text-slate-500" role="status" aria-live="polite">Loading inspections...</p> : (
         <div className="border rounded overflow-hidden">
           <table className="w-full">
             <thead className="bg-slate-50">

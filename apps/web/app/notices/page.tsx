@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { NOTICE_TEMPLATES } from '@/lib/noticeTemplates'
+import { AccessibleInput } from '@/components/AccessibleInput'
+import { AccessibleTextarea } from '@/components/AccessibleTextarea'
 
 export default function NoticesPage() {
   const [notices, setNotices] = useState<any[]>([])
@@ -32,33 +34,64 @@ export default function NoticesPage() {
     <main className="p-8 max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Compliance Notices</h1>
-        <button onClick={() => setShowForm(!showForm)} className="px-4 py-2 bg-slate-900 text-white rounded">
+        <button onClick={() => setShowForm(!showForm)} className="px-4 py-2 bg-slate-900 text-white rounded" aria-expanded={showForm}>
           {showForm ? 'Cancel' : 'Create Notice'}
         </button>
       </div>
 
       {showForm && (
-        <form onSubmit={create} className="border rounded p-4 mb-6 space-y-3">
-          <input className="w-full border rounded p-2" placeholder="Property ID" value={form.property_id} onChange={e => setForm({...form, property_id: e.target.value})} required />
-          <select className="w-full border rounded p-2" value={form.type} onChange={e => {
-            const t = e.target.value
-            const tmpl = NOTICE_TEMPLATES[t]
-            setForm({...form, type: t, title: tmpl?.title || form.title, content: tmpl?.content || form.content})
-          }}>
-            <option value="entry_notice">Entry Notice (24h)</option>
-            <option value="rent_increase">Rent Increase</option>
-            <option value="termination">Termination</option>
-            <option value="breach">Breach Notice</option>
-            <option value="general">General</option>
-          </select>
-          <input className="w-full border rounded p-2" placeholder="Title" value={form.title} onChange={e => setForm({...form, title: e.target.value})} required />
-          <textarea className="w-full border rounded p-2" placeholder="Content" value={form.content} onChange={e => setForm({...form, content: e.target.value})} rows={4} />
-          <input className="w-full border rounded p-2" type="date" value={form.effective_date} onChange={e => setForm({...form, effective_date: e.target.value})} />
-          <button className="px-4 py-2 bg-slate-900 text-white rounded">Create</button>
+        <form aria-label="Create compliance notice" onSubmit={create} className="border rounded p-4 mb-6 space-y-4">
+          <AccessibleInput
+            label="Property ID"
+            value={form.property_id}
+            onChange={e => setForm({...form, property_id: e.target.value})}
+            required
+            placeholder="Enter property ID"
+          />
+          <div className="flex flex-col gap-1">
+            <label htmlFor="notice-type" className="text-sm font-medium text-slate-700">Notice Type</label>
+            <select
+              id="notice-type"
+              className="w-full border rounded p-2"
+              value={form.type}
+              onChange={e => {
+                const t = e.target.value
+                const tmpl = NOTICE_TEMPLATES[t]
+                setForm({...form, type: t, title: tmpl?.title || form.title, content: tmpl?.content || form.content})
+              }}
+            >
+              <option value="entry_notice">Entry Notice (24h)</option>
+              <option value="rent_increase">Rent Increase</option>
+              <option value="termination">Termination</option>
+              <option value="breach">Breach Notice</option>
+              <option value="general">General</option>
+            </select>
+          </div>
+          <AccessibleInput
+            label="Title"
+            value={form.title}
+            onChange={e => setForm({...form, title: e.target.value})}
+            required
+            placeholder="Notice title"
+          />
+          <AccessibleTextarea
+            label="Content"
+            value={form.content}
+            onChange={e => setForm({...form, content: e.target.value})}
+            placeholder="Notice content"
+            rows={4}
+          />
+          <AccessibleInput
+            label="Effective Date"
+            type="date"
+            value={form.effective_date}
+            onChange={e => setForm({...form, effective_date: e.target.value})}
+          />
+          <button className="px-4 py-2 bg-slate-900 text-white rounded" type="submit">Create Notice</button>
         </form>
       )}
 
-      {loading ? <p className="text-slate-500">Loading...</p> : (
+      {loading ? <p className="text-slate-500" role="status" aria-live="polite">Loading notices...</p> : (
         <div className="border rounded overflow-hidden">
           <table className="w-full">
             <thead className="bg-slate-50">

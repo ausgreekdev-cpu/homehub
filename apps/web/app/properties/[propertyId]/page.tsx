@@ -51,15 +51,20 @@ export default function PropertyPage() {
       </div>
       <p className="text-slate-600 mb-4">{property?.address}</p>
 
-      <nav className="flex gap-2 mb-6 border-b">
+      <nav className="flex gap-2 mb-6 border-b" role="tablist" aria-label="Property sections">
         {tabs.map((t) => (
           <button key={t} onClick={() => setTab(t)}
+            role="tab"
+            aria-selected={tab === t}
+            aria-controls={`panel-${t}`}
+            id={`tab-${t}`}
             className={`px-3 py-2 text-sm capitalize ${tab === t ? 'border-b-2 border-slate-900 font-semibold' : 'text-slate-500'}`}>
             {t}
           </button>
         ))}
       </nav>
 
+      <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
       {tab === 'overview' && <OverviewTab propertyId={propertyId} />}
       {tab === 'bills' && <BillsTab propertyId={propertyId} />}
       {tab === 'inventory' && <InventoryTab propertyId={propertyId} />}
@@ -68,6 +73,7 @@ export default function PropertyPage() {
       {tab === 'tenancy' && <TenancyTab propertyId={propertyId} />}
       {tab === 'chores' && <ChoresTab propertyId={propertyId} />}
       {tab === 'rules' && <RulesTab propertyId={propertyId} />}
+      </div>
     </main>
     </>
   );

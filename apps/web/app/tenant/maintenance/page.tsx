@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { AccessibleInput } from '@/components/AccessibleInput'
+import { AccessibleTextarea } from '@/components/AccessibleTextarea'
 
 export default function TenantMaintenance() {
   const [tickets, setTickets] = useState<any[]>([])
@@ -41,13 +43,27 @@ export default function TenantMaintenance() {
     <main className="p-8 max-w-2xl mx-auto">
       <a href="/tenant" className="text-sm text-slate-600 underline">← Back</a>
       <h1 className="text-2xl font-bold mt-2 mb-6">Report an Issue</h1>
-      <form onSubmit={submit} className="space-y-3 mb-6">
-        <input className="w-full border rounded p-2" placeholder="Issue title" value={title} onChange={e => setTitle(e.target.value)} required />
-        <textarea className="w-full border rounded p-2" placeholder="Description" value={desc} onChange={e => setDesc(e.target.value)} rows={3} />
-        <button className="px-4 py-2 bg-slate-900 text-white rounded">Submit</button>
+      <form onSubmit={submit} className="space-y-4 mb-6" aria-label="Report a maintenance issue">
+        <AccessibleInput
+          label="Issue Title"
+          value={title}
+          onChange={e => setTitle(e.target.value)}
+          required
+          placeholder="Brief description of the issue"
+        />
+        <AccessibleTextarea
+          label="Description"
+          value={desc}
+          onChange={e => setDesc(e.target.value)}
+          placeholder="Detailed description of the issue"
+          rows={3}
+        />
+        <button className="px-4 py-2 bg-slate-900 text-white rounded" type="submit" aria-busy={false}>
+          Submit Request
+        </button>
       </form>
       <h2 className="font-semibold mb-3">Your Requests</h2>
-      {loading ? <p className="text-slate-500">Loading...</p> : tickets.length === 0 ? <p className="text-slate-500">No requests yet.</p> : (
+      {loading ? <p className="text-slate-500" role="status" aria-live="polite">Loading requests...</p> : tickets.length === 0 ? <p className="text-slate-500">No requests yet.</p> : (
         <ul className="divide-y border rounded">
           {tickets.map(t => (
             <li key={t.id} className="p-3">

@@ -39,7 +39,7 @@ export default function ArrearsPage() {
           <h1 className="text-2xl font-bold">Arrears Dashboard</h1>
           <p className="text-slate-600">Track overdue rent and late fees</p>
         </div>
-        <button onClick={applyLateFees} className="px-4 py-2 bg-slate-900 text-white rounded">
+        <button onClick={applyLateFees} className="px-4 py-2 bg-slate-900 text-white rounded" aria-label="Apply late fees to all overdue items">
           Apply Late Fees
         </button>
       </div>

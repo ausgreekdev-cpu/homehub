@@ -38,11 +38,20 @@ export default function TenantMessages() {
     <main className="p-8 max-w-2xl mx-auto">
       <a href="/tenant" className="text-sm text-slate-600 underline">← Back</a>
       <h1 className="text-2xl font-bold mt-2 mb-6">Messages</h1>
-      <form onSubmit={send} className="flex gap-2 mb-6">
-        <input className="flex-1 border rounded p-2" placeholder="Type a message..." value={content} onChange={e => setContent(e.target.value)} required />
-        <button className="px-4 py-2 bg-slate-900 text-white rounded">Send</button>
+      <form onSubmit={send} className="flex gap-2 mb-6" aria-label="Send a message">
+        <label htmlFor="message-input" className="sr-only">Message</label>
+        <input
+          id="message-input"
+          className="flex-1 border rounded p-2"
+          placeholder="Type a message..."
+          value={content}
+          onChange={e => setContent(e.target.value)}
+          required
+          aria-required="true"
+        />
+        <button className="px-4 py-2 bg-slate-900 text-white rounded" type="submit" aria-label="Send message">Send</button>
       </form>
-      {loading ? <p className="text-slate-500">Loading...</p> : (
+      {loading ? <p className="text-slate-500" role="status" aria-live="polite">Loading messages...</p> : (
         <ul className="space-y-3">
           {messages.map(m => (
             <li key={m.id} className="border rounded p-3">

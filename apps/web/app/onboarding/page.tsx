@@ -43,15 +43,15 @@ export default function OnboardingPage() {
 
         {step === 1 && (
           <div className="space-y-4">
-            <button onClick={() => { setRole('landlord'); setStep(2) }} className="w-full p-4 border rounded text-left hover:bg-slate-50">
+            <button onClick={() => { setRole('landlord'); setStep(2) }} className="w-full p-4 border rounded text-left hover:bg-slate-50" aria-label="I'm a Landlord or Agent - manage properties and tenants">
               <div className="font-semibold">I'm a Landlord/Agent</div>
               <div className="text-sm text-slate-500">Manage properties and tenants</div>
             </button>
-            <button onClick={() => { setRole('tenant'); setStep(3) }} className="w-full p-4 border rounded text-left hover:bg-slate-50">
+            <button onClick={() => { setRole('tenant'); setStep(3) }} className="w-full p-4 border rounded text-left hover:bg-slate-50" aria-label="I'm a Tenant - join an existing property">
               <div className="font-semibold">I'm a Tenant</div>
               <div className="text-sm text-slate-500">Join an existing property</div>
             </button>
-            <button onClick={() => { setRole('contractor'); setStep(3) }} className="w-full p-4 border rounded text-left hover:bg-slate-50">
+            <button onClick={() => { setRole('contractor'); setStep(3) }} className="w-full p-4 border rounded text-left hover:bg-slate-50" aria-label="I'm a Contractor - join to handle maintenance jobs">
               <div className="font-semibold">I'm a Contractor</div>
               <div className="text-sm text-slate-500">Join to handle maintenance jobs</div>
             </button>
@@ -60,14 +60,20 @@ export default function OnboardingPage() {
 
         {step === 2 && role === 'landlord' && (
           <div className="space-y-4">
-            <input
-              className="w-full border rounded p-2"
-              placeholder="Property name"
-              value={propertyName}
-              onChange={(e) => setPropertyName(e.target.value)}
-            />
+            <div className="flex flex-col gap-1">
+              <label htmlFor="property-name" className="text-sm font-medium text-slate-700">Property name</label>
+              <input
+                id="property-name"
+                className="w-full border rounded p-2"
+                placeholder="Property name"
+                value={propertyName}
+                onChange={(e) => setPropertyName(e.target.value)}
+                required
+                aria-required="true"
+              />
+            </div>
             <button onClick={createProperty} disabled={loading || !propertyName} className="w-full bg-slate-900 text-white rounded p-2 disabled:opacity-50">
-              {loading ? 'Creating...' : 'Create Property'}
+              {loading ? 'Creating property...' : 'Create Property'}
             </button>
             <button onClick={() => setStep(1)} className="w-full text-sm text-slate-500">Back</button>
           </div>
@@ -75,14 +81,20 @@ export default function OnboardingPage() {
 
         {step === 3 && (
           <div className="space-y-4">
-            <input
-              className="w-full border rounded p-2"
-              placeholder="Invite code"
-              value={inviteCode}
-              onChange={(e) => setInviteCode(e.target.value)}
-            />
+            <div className="flex flex-col gap-1">
+              <label htmlFor="invite-code" className="text-sm font-medium text-slate-700">Invite code</label>
+              <input
+                id="invite-code"
+                className="w-full border rounded p-2"
+                placeholder="Invite code"
+                value={inviteCode}
+                onChange={(e) => setInviteCode(e.target.value)}
+                required
+                aria-required="true"
+              />
+            </div>
             <button onClick={joinProperty} disabled={loading || !inviteCode} className="w-full bg-slate-900 text-white rounded p-2 disabled:opacity-50">
-              {loading ? 'Joining...' : 'Join Property'}
+              {loading ? 'Joining property...' : 'Join Property'}
             </button>
             <button onClick={() => setStep(1)} className="w-full text-sm text-slate-500">Back</button>
           </div>

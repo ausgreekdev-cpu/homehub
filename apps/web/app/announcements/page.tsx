@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { AccessibleInput } from '@/components/AccessibleInput'
+import { AccessibleTextarea } from '@/components/AccessibleTextarea'
 
 export default function AnnouncementsPage() {
   const [announcements, setAnnouncements] = useState<any[]>([])
@@ -35,21 +37,42 @@ export default function AnnouncementsPage() {
     <main className="p-8 max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Announcements</h1>
-        <button onClick={() => setShowForm(!showForm)} className="px-4 py-2 bg-slate-900 text-white rounded">
+        <button onClick={() => setShowForm(!showForm)} className="px-4 py-2 bg-slate-900 text-white rounded" aria-expanded={showForm} aria-controls="announcement-form">
           {showForm ? 'Cancel' : 'New Announcement'}
         </button>
       </div>
 
       {showForm && (
-        <form onSubmit={create} className="border rounded p-4 mb-6 space-y-3">
-          <input className="w-full border rounded p-2" placeholder="Property ID" value={form.property_id} onChange={e => setForm({...form, property_id: e.target.value})} required />
-          <input className="w-full border rounded p-2" placeholder="Title" value={form.title} onChange={e => setForm({...form, title: e.target.value})} required />
-          <textarea className="w-full border rounded p-2" placeholder="Message" value={form.content} onChange={e => setForm({...form, content: e.target.value})} rows={4} required />
-          <button className="px-4 py-2 bg-slate-900 text-white rounded">Send to All Tenants</button>
+        <form aria-label="Create new announcement" onSubmit={create} className="border rounded p-4 mb-6 space-y-4">
+          <AccessibleInput
+            label="Property ID"
+            value={form.property_id}
+            onChange={e => setForm({...form, property_id: e.target.value})}
+            required
+            placeholder="Enter property ID"
+          />
+          <AccessibleInput
+            label="Title"
+            value={form.title}
+            onChange={e => setForm({...form, title: e.target.value})}
+            required
+            placeholder="Announcement title"
+          />
+          <AccessibleTextarea
+            label="Message"
+            value={form.content}
+            onChange={e => setForm({...form, content: e.target.value})}
+            required
+            placeholder="Announcement content"
+            rows={4}
+          />
+          <button className="px-4 py-2 bg-slate-900 text-white rounded" type="submit" aria-busy={false}>
+            Send to All Tenants
+          </button>
         </form>
       )}
 
-      {loading ? <p className="text-slate-500">Loading...</p> : (
+      {loading ? <p className="text-slate-500" role="status" aria-live="polite">Loading announcements...</p> : (
         <div className="space-y-3">
           {announcements.map(a => (
             <div key={a.id} className="border rounded p-4">
