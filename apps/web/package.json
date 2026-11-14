@@ -43,6 +43,7 @@
     "tailwindcss": "^3.4.14",
     "typescript": "5.6.3",
     "@types/react-window": "^1.8.8",
-    "@next/bundle-analyzer": "^15.1.9"
+    "@next/bundle-analyzer": "^15.1.9",
+    "@axe-core/playwright": "^4.10.0"
   }
 }
