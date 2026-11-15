@@ -1,6 +1,9 @@
 import { View, Text, StyleSheet, FlatList, RefreshControl, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '../../lib/supabase';
+import { cacheSet, cacheGet } from '../../services/offlineCache';
+import { enqueueAction } from '../../services/syncQueue';
+import { useNetworkStatus } from '../../hooks/useNetworkStatus';
 
 export default function Maintenance() {
   const [items, setItems] = useState<any[]>([]);
@@ -9,6 +12,7 @@ export default function Maintenance() {
   const [title, setTitle] = useState('');
   const [desc, setDesc] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const { isOffline } = useNetworkStatus();
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -16,11 +20,19 @@ export default function Maintenance() {
     if (!user) { setLoading(false); return; }
     const { data: mems } = await supabase.from('property_memberships').select('property_id').eq('user_id', user.id);
     if (mems && mems.length > 0 && mems[0]) {
+      const cacheKey = `maintenance_${mems[0].property_id}`;
+      if (isOffline) {
+        const cached = await cacheGet<any[]>(cacheKey);
+        if (cached) setItems(cached);
+        setLoading(false);
+        return;
+      }
       const { data } = await supabase.from('maintenance_requests').select('id,title,status,priority,created_at').eq('property_id', mems[0].property_id).order('created_at', { ascending: false }).limit(20);
       setItems(data || []);
+      await cacheSet(cacheKey, data || []);
     }
     setLoading(false);
-  }, []);
+  }, [isOffline]);
 
   useEffect(() => { load(); }, [load]);
 
@@ -31,14 +43,25 @@ export default function Maintenance() {
     if (!user) { setSubmitting(false); return; }
     const { data: mems } = await supabase.from('property_memberships').select('property_id').eq('user_id', user.id);
     if (!mems || mems.length === 0) { setSubmitting(false); return; }
-    const { error } = await supabase.from('maintenance_requests').insert({
+    const payload = {
       property_id: mems[0].property_id,
       title,
       description: desc,
       reported_by: user.id,
       status: 'open',
       priority: 'medium',
-    });
+    };
+
+    if (isOffline) {
+      await enqueueAction('maintenance', payload);
+      setItems((prev) => [{ id: `offline_${Date.now()}`, ...payload, created_at: new Date().toISOString() }, ...prev]);
+      setSubmitting(false);
+      Alert.alert('Queued', 'Request saved offline. Will sync when connected.');
+      setTitle(''); setDesc(''); setShowForm(false);
+      return;
+    }
+
+    const { error } = await supabase.from('maintenance_requests').insert(payload);
     setSubmitting(false);
     if (error) { Alert.alert('Error', error.message); return; }
     setTitle(''); setDesc(''); setShowForm(false);

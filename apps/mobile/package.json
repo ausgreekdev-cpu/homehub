@@ -21,6 +21,7 @@
     "expo-notifications": "~0.28.0",
     "expo-updates": "~0.25.0",
     "expo-device": "~6.0.0",
-    "@stripe/stripe-react-native": "0.38.0"
+    "@stripe/stripe-react-native": "0.38.0",
+    "@react-native-community/netinfo": "^11.3.0"
   }
 }

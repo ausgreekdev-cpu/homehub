@@ -37,6 +37,12 @@ eas build --profile production --platform all
 - Payment recorded in Supabase after success
 - Requires EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY in .env
 
+## Offline Support
+- AsyncStorage cache for viewed data (bills, maintenance, messages)
+- Sync queue for offline actions (maintenance requests queued when offline)
+- Network status indicator (OfflineBanner component)
+- Auto-sync when connection restored
+
 ## Next Steps
 - Stripe Payment Sheet for rent payments
 - Image upload for maintenance requests

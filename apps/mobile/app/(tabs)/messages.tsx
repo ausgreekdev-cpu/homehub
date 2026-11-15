@@ -1,22 +1,30 @@
 import { View, Text, StyleSheet, FlatList, RefreshControl } from 'react-native';
 import { useCallback, useEffect, useState, useRef } from 'react';
 import { supabase } from '../../lib/supabase';
+import { cacheSet, cacheGet } from '../../services/offlineCache';
+import { useNetworkStatus } from '../../hooks/useNetworkStatus';
 
 export default function Messages() {
   const [items, setItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const { isOffline } = useNetworkStatus();
 
   const load = useCallback(async () => {
     setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) { setLoading(false); return; }
-    const { data: mems } = await supabase.from('property_memberships').select('property_id').eq('user_id', user.id);
-    if (mems && mems.length > 0 && mems[0]) {
-      const { data } = await supabase.from('notifications').select('id,title,body,read,created_at').eq('user_id', user.id).order('created_at', { ascending: false }).limit(30);
-      setItems(data || []);
+    const cacheKey = `messages_${user.id}`;
+    if (isOffline) {
+      const cached = await cacheGet<any[]>(cacheKey);
+      if (cached) setItems(cached);
+      setLoading(false);
+      return;
     }
+    const { data } = await supabase.from('notifications').select('id,title,body,read,created_at').eq('user_id', user.id).order('created_at', { ascending: false }).limit(30);
+    setItems(data || []);
+    await cacheSet(cacheKey, data || []);
     setLoading(false);
-  }, []);
+  }, [isOffline]);
 
   // Real-time subscription for new notifications
   useEffect(() => {
