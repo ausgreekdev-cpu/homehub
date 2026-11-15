@@ -38,6 +38,7 @@ export function RoleSwitcher() {
         router.push(`/properties/${e.target.value}`)
       }}
       className="border rounded px-2 py-1 text-sm"
+      aria-label="Switch property and role"
     >
       {memberships.map((m) => (
         <option key={m.id} value={m.property_id}>

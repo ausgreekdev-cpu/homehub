@@ -41,10 +41,10 @@ export default function ContractorPage() {
               </div>
               <p className="text-sm text-slate-600 mb-3">{job.description}</p>
               <div className="flex gap-2">
-                <button className="px-3 py-1 border rounded text-sm">Check In</button>
-                <button className="px-3 py-1 border rounded text-sm">Check Out</button>
-                <button className="px-3 py-1 border rounded text-sm">Upload Photo</button>
-                <button className="px-3 py-1 bg-slate-900 text-white rounded text-sm">Submit Invoice</button>
+                <button className="px-3 py-1 border rounded text-sm" aria-label="Check in to job site">Check In</button>
+                <button className="px-3 py-1 border rounded text-sm" aria-label="Check out from job site">Check Out</button>
+                <button className="px-3 py-1 border rounded text-sm" aria-label="Upload photo">Upload Photo</button>
+                <button className="px-3 py-1 bg-slate-900 text-white rounded text-sm" aria-label="Submit invoice">Submit Invoice</button>
               </div>
             </div>
           ))}

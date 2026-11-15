@@ -24,9 +24,9 @@ export function NotificationsBell() {
 
   return (
     <div className="relative">
-      <button onClick={() => setOpen((o) => !o)} className="relative p-2 rounded hover:bg-slate-100">
+      <button onClick={() => setOpen((o) => !o)} className="relative p-2 rounded hover:bg-slate-100" aria-label="Notifications" aria-expanded={open} aria-haspopup="true">
         🔔
-        {unread > 0 && <span className="absolute top-0 right-0 bg-red-600 text-white text-xs rounded-full px-1">{unread}</span>}
+        {unread > 0 && <span className="absolute top-0 right-0 bg-red-600 text-white text-xs rounded-full px-1" aria-label={`${unread} unread notifications`}>{unread}</span>}
       </button>
       {open && (
         <div className="absolute right-0 mt-2 w-80 bg-white border rounded shadow-lg z-10 max-h-96 overflow-y-auto">
@@ -35,7 +35,7 @@ export function NotificationsBell() {
             <div key={n.id} className={`p-3 border-b text-sm ${n.read_at ? 'opacity-60' : ''}`}>
               <div className="font-semibold">{n.title}</div>
               {n.body && <div className="text-slate-600">{n.body}</div>}
-              {!n.read_at && <button onClick={() => markRead(n.id)} className="text-xs text-indigo-600 mt-1">Mark read</button>}
+              {!n.read_at && <button onClick={() => markRead(n.id)} className="text-xs text-indigo-600 mt-1" aria-label="Mark notification as read">Mark read</button>}
             </div>
           ))}
         </div>

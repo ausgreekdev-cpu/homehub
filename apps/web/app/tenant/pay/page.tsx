@@ -40,7 +40,7 @@ export default function TenantPay() {
                 <div className="font-semibold">{(s.expenses as any)?.title}</div>
                 <div className="text-sm text-slate-600">${((s.share_cents - (s.paid_cents ?? 0)) / 100).toFixed(2)} due</div>
               </div>
-              <button onClick={() => pay(s.id)} className="px-4 py-2 bg-slate-900 text-white rounded">Pay</button>
+              <button onClick={() => pay(s.id)} className="px-4 py-2 bg-slate-900 text-white rounded" aria-label="Pay this bill">Pay</button>
             </div>
           ))}
         </div>
