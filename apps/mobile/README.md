@@ -43,6 +43,12 @@ eas build --profile production --platform all
 - Network status indicator (OfflineBanner component)
 - Auto-sync when connection restored
 
+## Image Upload
+- Camera and gallery picker for maintenance request photos
+- Images uploaded to Supabase Storage (maintenance-photos bucket)
+- Photo preview with remove option
+- Photo displayed on maintenance request cards
+
 ## Next Steps
 - Stripe Payment Sheet for rent payments
 - Image upload for maintenance requests
