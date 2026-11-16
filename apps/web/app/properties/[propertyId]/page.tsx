@@ -12,6 +12,7 @@ import { calculateDepreciation } from '@/lib/depreciation';
 import { getNextOccurrence } from '@/lib/rrule';
 import { PlaidLinkButton } from '@/components/PlaidLinkButton';
 import { RateVendorModal } from '@/components/RateVendorModal';
+import { VirtualizedList } from '@/components/VirtualizedList';
 
 function ItemPhoto({ path }: { path: string }) {
   const [url, setUrl] = useState<string | null>(null);
@@ -665,14 +666,22 @@ function MessagesTab({ propertyId }: { propertyId: string }) {
       <div className="col-span-2 border rounded p-3 flex flex-col">
         {!active ? <p className="text-slate-500 text-sm">Select or create a thread.</p> : (
           <>
-            <div className="flex-1 overflow-y-auto space-y-2 mb-3 max-h-96">
-              {messages.map((m) => (
-                <div key={m.id} className="text-sm">
-                  <span className="text-slate-500">{new Date(m.created_at).toLocaleTimeString()} </span>
-                  {m.body}
-                </div>
-              ))}
-              {messages.length === 0 && <p className="text-slate-500 text-sm">No messages yet.</p>}
+            <div className="flex-1 mb-3 max-h-96">
+              {messages.length === 0 ? (
+                <p className="text-slate-500 text-sm">No messages yet.</p>
+              ) : (
+                <VirtualizedList
+                  items={messages}
+                  itemHeight={40}
+                  height={384}
+                  renderItem={(m) => (
+                    <div className="text-sm py-1">
+                      <span className="text-slate-500">{new Date(m.created_at).toLocaleTimeString()} </span>
+                      {m.body}
+                    </div>
+                  )}
+                />
+              )}
             </div>
             <form onSubmit={send} className="flex gap-2">
               <input className="border rounded p-2 flex-1" value={body} onChange={(e) => setBody(e.target.value)} placeholder="Message…" />
