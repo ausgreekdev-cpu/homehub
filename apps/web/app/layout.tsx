@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Providers } from '@/components/providers';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { Navigation } from '@/components/Navigation';
 
 export const metadata: Metadata = {
   title: 'HomeHub — Property & Household Management',
@@ -21,6 +22,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </a>
         <ErrorBoundary>
           <Providers>
+            <Navigation />
             <div id="main-content" role="main" tabIndex={-1}>
               {children}
             </div>
