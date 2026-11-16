@@ -29,11 +29,11 @@ export default function AuditPage() {
 
   return (
     <main className="p-8 max-w-4xl mx-auto">
-      <a href={`/properties/${propertyId}`} className="text-sm text-slate-600 underline">← Back to property</a>
+      <a href={`/properties/${propertyId}`} className="text-sm text-slate-600 underline" aria-label="Back to property details">← Back to property</a>
       <h1 className="text-2xl font-bold mt-2 mb-6">Audit Log</h1>
       
       {loading ? (
-        <p className="text-slate-500">Loading...</p>
+        <p className="text-slate-500" role="status" aria-live="polite">Loading audit log...</p>
       ) : logs.length === 0 ? (
         <p className="text-slate-500">No audit entries yet.</p>
       ) : (

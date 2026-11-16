@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { ImageUpload } from '@/components/ImageUpload'
+import { AccessibleInput } from '@/components/AccessibleInput'
 
 export default function InspectionDetailPage() {
   const params = useParams()
@@ -46,28 +47,40 @@ export default function InspectionDetailPage() {
     return data?.signedUrl ?? null
   }
 
-  if (loading) return <main className="p-8"><p className="text-slate-500">Loading...</p></main>
+  if (loading) return <main className="p-8"><p className="text-slate-500" role="status" aria-live="polite">Loading inspection details...</p></main>
 
   return (
     <main className="p-8 max-w-6xl mx-auto">
-      <a href="/inspections" className="text-sm text-slate-600 underline">← Back to inspections</a>
+      <a href="/inspections" className="text-sm text-slate-600 underline" aria-label="Back to inspections list">← Back to inspections</a>
       <h1 className="text-2xl font-bold mt-2 mb-2">
         {inspection?.type?.replace('_', ' ')} Inspection
       </h1>
       <p className="text-slate-600 mb-6">Status: {inspection?.status}</p>
 
-      <form onSubmit={addItem} className="border rounded p-4 mb-6 flex flex-wrap gap-2">
-        <input className="border rounded p-2" placeholder="Room" value={newItem.room} onChange={e => setNewItem({...newItem, room: e.target.value})} required />
-        <input className="border rounded p-2" placeholder="Item" value={newItem.item_name} onChange={e => setNewItem({...newItem, item_name: e.target.value})} required />
-        <select className="border rounded p-2" value={newItem.condition} onChange={e => setNewItem({...newItem, condition: e.target.value})}>
-          <option value="excellent">Excellent</option>
-          <option value="good">Good</option>
-          <option value="fair">Fair</option>
-          <option value="poor">Poor</option>
-          <option value="damaged">Damaged</option>
-        </select>
-        <input className="border rounded p-2 flex-1" placeholder="Notes" value={newItem.notes} onChange={e => setNewItem({...newItem, notes: e.target.value})} />
-        <button className="px-4 py-2 bg-slate-900 text-white rounded">Add Item</button>
+      <form onSubmit={addItem} className="border rounded p-4 mb-6 flex flex-wrap gap-2" aria-label="Add inspection item">
+        <div className="flex flex-col gap-1">
+          <label htmlFor="insp-room" className="sr-only">Room</label>
+          <input id="insp-room" className="border rounded p-2" placeholder="Room" value={newItem.room} onChange={e => setNewItem({...newItem, room: e.target.value})} required aria-required="true" />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label htmlFor="insp-item" className="sr-only">Item name</label>
+          <input id="insp-item" className="border rounded p-2" placeholder="Item" value={newItem.item_name} onChange={e => setNewItem({...newItem, item_name: e.target.value})} required aria-required="true" />
+        </div>
+        <div className="flex flex-col gap-1">
+          <label htmlFor="insp-condition" className="sr-only">Condition</label>
+          <select id="insp-condition" className="border rounded p-2" value={newItem.condition} onChange={e => setNewItem({...newItem, condition: e.target.value})}>
+            <option value="excellent">Excellent</option>
+            <option value="good">Good</option>
+            <option value="fair">Fair</option>
+            <option value="poor">Poor</option>
+            <option value="damaged">Damaged</option>
+          </select>
+        </div>
+        <div className="flex flex-col gap-1 flex-1">
+          <label htmlFor="insp-notes" className="sr-only">Notes</label>
+          <input id="insp-notes" className="border rounded p-2 flex-1" placeholder="Notes" value={newItem.notes} onChange={e => setNewItem({...newItem, notes: e.target.value})} />
+        </div>
+        <button className="px-4 py-2 bg-slate-900 text-white rounded" type="submit" aria-label="Add inspection item">Add Item</button>
       </form>
 
       <div className="space-y-4">
