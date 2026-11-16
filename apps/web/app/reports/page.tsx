@@ -112,13 +112,13 @@ export default function ReportsPage() {
         <div className="border rounded p-4">
           <h2 className="font-semibold mb-2">Rent Roll</h2>
           <p className="text-sm text-slate-600 mb-4">All tenants and rent amounts</p>
-          <button onClick={downloadRentRoll} className="px-4 py-2 border rounded text-sm">Download CSV</button>
+          <button onClick={downloadRentRoll} className="px-4 py-2 border rounded text-sm" aria-label="Download rent roll as CSV">Download CSV</button>
         </div>
         <div className="border rounded p-4">
           <h2 className="font-semibold mb-2">P&L Statement</h2>
           <p className="text-sm text-slate-600 mb-4">Income vs expenses</p>
           <button onClick={generatePL} disabled={loading || !propertyId} className="px-4 py-2 border rounded text-sm disabled:opacity-50">
-            {loading ? '...' : 'Generate'}
+            {loading ? 'Generating...' : 'Generate'}
           </button>
           {plReport && (
             <div className="mt-3 text-sm bg-slate-50 p-3 rounded">
@@ -135,14 +135,17 @@ export default function ReportsPage() {
           <h2 className="font-semibold mb-2">Owner Statement</h2>
           <p className="text-sm text-slate-600 mb-4">Per-owner summary</p>
           <div className="flex gap-2 mb-2">
+            <label htmlFor="report-month" className="sr-only">Select month</label>
             <input
+              id="report-month"
               className="border rounded p-1 flex-1 text-sm"
               type="month"
               value={selectedMonth}
               onChange={(e) => setSelectedMonth(e.target.value)}
+              aria-label="Select month for owner statement"
             />
             <button onClick={generateOwnerStatement} disabled={loading} className="px-3 py-1 bg-slate-900 text-white rounded text-sm disabled:opacity-50">
-              {loading ? '...' : 'Generate'}
+              {loading ? 'Generating...' : 'Generate'}
             </button>
           </div>
           {ownerStatement && (
@@ -157,14 +160,17 @@ export default function ReportsPage() {
           <h2 className="font-semibold mb-2">Xero Export</h2>
           <p className="text-sm text-slate-600 mb-4">CSV export for Xero/QuickBooks</p>
           <div className="flex gap-2 mb-2">
+            <label htmlFor="report-property" className="sr-only">Property ID</label>
             <input
+              id="report-property"
               className="border rounded p-1 flex-1 text-sm"
               placeholder="Property ID"
               value={propertyId}
               onChange={(e) => setPropertyId(e.target.value)}
+              aria-label="Enter property ID for Xero export"
             />
             <button onClick={exportXero} disabled={loading || !propertyId} className="px-3 py-1 bg-slate-900 text-white rounded text-sm disabled:opacity-50">
-              {loading ? '...' : 'Export'}
+              {loading ? 'Exporting...' : 'Export'}
             </button>
           </div>
           {csv && <button onClick={downloadCsv} className="text-sm text-blue-600 underline">Download CSV</button>}

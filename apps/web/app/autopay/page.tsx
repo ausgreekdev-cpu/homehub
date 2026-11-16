@@ -64,6 +64,8 @@ export default function AutopayPage() {
             onClick={toggle}
             disabled={loading}
             className={`px-4 py-2 rounded ${enabled ? 'bg-green-600 text-white' : 'bg-slate-200'}`}
+            aria-pressed={enabled}
+            aria-label={enabled ? 'Disable autopay' : 'Enable autopay'}
           >
             {enabled ? 'Enabled' : 'Disabled'}
           </button>
@@ -76,7 +78,7 @@ export default function AutopayPage() {
           disabled={processing}
           className="w-full px-4 py-2 border rounded disabled:opacity-50"
         >
-          {processing ? 'Processing...' : 'Process Due Payments Now'}
+          {processing ? 'Processing payments...' : 'Process Due Payments Now'}
         </button>
       </div>
     </main>
