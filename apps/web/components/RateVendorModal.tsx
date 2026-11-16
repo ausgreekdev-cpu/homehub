@@ -37,21 +37,25 @@ export function RateVendorModal({ ticketId, contractorId, onClose, onRated }: {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" role="dialog" aria-modal="true" aria-labelledby="rate-modal-title">
       <div className="bg-white p-6 rounded-lg max-w-md w-full">
-        <h2 className="text-lg font-semibold mb-4">Rate Contractor</h2>
+        <h2 id="rate-modal-title" className="text-lg font-semibold mb-4">Rate Contractor</h2>
         <div className="flex gap-1 mb-4">
           {[1, 2, 3, 4, 5].map((n) => (
             <button
               key={n}
               onClick={() => setRating(n)}
               className={`text-2xl ${n <= rating ? 'text-yellow-500' : 'text-slate-300'}`}
+              aria-label={`Rate ${n} out of 5 stars`}
+              aria-pressed={n <= rating}
             >
               ★
             </button>
           ))}
         </div>
+        <label htmlFor="review-text" className="sr-only">Review (optional)</label>
         <textarea
+          id="review-text"
           className="w-full border rounded p-2 mb-4"
           placeholder="Review (optional)"
           value={review}
