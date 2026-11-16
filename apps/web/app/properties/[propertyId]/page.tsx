@@ -954,18 +954,24 @@ function ChoresTab({ propertyId }: { propertyId: string }) {
         </select>
         <button className="bg-slate-900 text-white rounded px-4 py-2">Add chore</button>
       </form>
-      <ul className="divide-y border rounded">
-        {chores.map((c) => (
-          <li key={c.id} className="p-3 flex justify-between items-center">
-            <div>
-              <div className="font-semibold">{c.title} <span className="text-xs text-slate-500">· {c.status}</span>{c.rrule ? ' 🔄' : ''}</div>
-              <div className="text-xs text-slate-500">Assignee: {c.current_assignee ?? '—'}{c.rrule ? ` · repeats ${c.rrule.split(';')[0].replace('FREQ=', '').toLowerCase()}` : ''}</div>
+      {chores.length === 0 ? (
+        <p className="p-3 text-slate-500 text-sm">No chores yet.</p>
+      ) : (
+        <VirtualizedList
+          items={chores}
+          itemHeight={60}
+          height={Math.min(chores.length * 60, 400)}
+          renderItem={(c) => (
+            <div className="p-3 flex justify-between items-center border-b">
+              <div>
+                <div className="font-semibold">{c.title} <span className="text-xs text-slate-500">· {c.status}</span>{c.rrule ? ' 🔄' : ''}</div>
+                <div className="text-xs text-slate-500">Assignee: {c.current_assignee ?? '—'}{c.rrule ? ` · repeats ${c.rrule.split(';')[0].replace('FREQ=', '').toLowerCase()}` : ''}</div>
+              </div>
+              {c.status !== 'done' && <button onClick={() => complete(c.id)} className="border rounded px-2 py-1 text-xs">Mark done</button>}
             </div>
-            {c.status !== 'done' && <button onClick={() => complete(c.id)} className="border rounded px-2 py-1 text-xs">Mark done</button>}
-          </li>
-        ))}
-        {chores.length === 0 && <li className="p-3 text-slate-500 text-sm">No chores yet.</li>}
-      </ul>
+          )}
+        />
+      )}
     </div>
   );
 }
