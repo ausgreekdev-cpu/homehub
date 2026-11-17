@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { createClient } from '@/lib/supabase/client'
 
 export function RateVendorModal({ ticketId, contractorId, onClose, onRated }: {
@@ -12,6 +13,7 @@ export function RateVendorModal({ ticketId, contractorId, onClose, onRated }: {
   const [rating, setRating] = useState(5)
   const [review, setReview] = useState('')
   const [loading, setLoading] = useState(false)
+  const containerRef = useFocusTrap(true)
 
   async function submit() {
     setLoading(true)
@@ -37,8 +39,8 @@ export function RateVendorModal({ ticketId, contractorId, onClose, onRated }: {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" role="dialog" aria-modal="true" aria-labelledby="rate-modal-title">
-      <div className="bg-white p-6 rounded-lg max-w-md w-full">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" role="dialog" aria-modal="true" aria-labelledby="rate-modal-title" onKeyDown={(e) => { if (e.key === 'Escape') onClose() }}>
+      <div ref={containerRef} className="bg-white p-6 rounded-lg max-w-md w-full" tabIndex={-1}>
         <h2 id="rate-modal-title" className="text-lg font-semibold mb-4">Rate Contractor</h2>
         <div className="flex gap-1 mb-4">
           {[1, 2, 3, 4, 5].map((n) => (

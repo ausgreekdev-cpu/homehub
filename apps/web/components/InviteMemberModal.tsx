@@ -1,12 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useFocusTrap } from '@/hooks/useFocusTrap'
 import { createClient } from '@/lib/supabase/client'
 
 export function InviteMemberModal({ propertyId, onClose }: { propertyId: string; onClose: () => void }) {
   const [email, setEmail] = useState('')
   const [role, setRole] = useState('tenant')
   const [loading, setLoading] = useState(false)
+  const containerRef = useFocusTrap(true)
 
   async function invite() {
     setLoading(true)
@@ -27,14 +29,19 @@ export function InviteMemberModal({ propertyId, onClose }: { propertyId: string;
   }
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg max-w-md w-full">
-        <h2 className="text-lg font-semibold mb-4">Invite Member</h2>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" role="dialog" aria-modal="true" aria-labelledby="invite-modal-title" onKeyDown={(e) => { if (e.key === 'Escape') onClose() }}>
+      <div ref={containerRef} className="bg-white p-6 rounded-lg max-w-md w-full" tabIndex={-1}>
+        <h2 id="invite-modal-title" className="text-lg font-semibold mb-4">Invite Member</h2>
+        <label htmlFor="invite-email" className="sr-only">Email address</label>
         <input
+          id="invite-email"
           className="w-full border rounded p-2 mb-3"
           placeholder="Email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
+          type="email"
+          required
+          aria-required="true"
         />
         <select className="w-full border rounded p-2 mb-4" value={role} onChange={(e) => setRole(e.target.value)} aria-label="Select member role">
           <option value="tenant">Tenant</option>
