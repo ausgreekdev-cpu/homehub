@@ -21,7 +21,7 @@ function ItemPhoto({ path }: { path: string }) {
     supabase.storage.from('condition-reports').createSignedUrl(path, 3600).then(({ data }: { data: any }) => setUrl(data?.signedUrl ?? null));
   }, [path]);
   if (!url) return <div className="w-16 h-16 bg-slate-100 rounded" />;
-  return <img src={url} alt="" className="w-16 h-16 object-cover rounded border" />;
+  return <img src={url} alt="Item photo" className="w-16 h-16 object-cover rounded border" />;
 }
 
 type Tab = 'overview' | 'bills' | 'inventory' | 'maintenance' | 'messages' | 'tenancy' | 'chores' | 'rules';

@@ -35,7 +35,7 @@ export default function TenantPortal() {
     setLoading(false)
   }
 
-  if (loading) return <main className="p-8"><p className="text-slate-500">Loading...</p></main>
+  if (loading) return <main className="p-8"><p className="text-slate-500" role="status" aria-live="polite">Loading tenant portal...</p></main>
 
   const property = memberships[0]?.properties
 
@@ -48,9 +48,9 @@ export default function TenantPortal() {
         <div className="border rounded p-4">
           <h2 className="font-semibold mb-3">Quick Actions</h2>
           <div className="space-y-2">
-            <Link href="/tenant/pay" className="block px-4 py-2 bg-slate-900 text-white rounded text-center">Pay Rent</Link>
-            <Link href="/tenant/maintenance" className="block px-4 py-2 border rounded text-center">Report Issue</Link>
-            <Link href="/tenant/messages" className="block px-4 py-2 border rounded text-center">Messages</Link>
+            <Link href="/tenant/pay" className="block px-4 py-2 bg-slate-900 text-white rounded text-center" aria-label="Pay rent">Pay Rent</Link>
+            <Link href="/tenant/maintenance" className="block px-4 py-2 border rounded text-center" aria-label="Report a maintenance issue">Report Issue</Link>
+            <Link href="/tenant/messages" className="block px-4 py-2 border rounded text-center" aria-label="View messages">Messages</Link>
           </div>
         </div>
         <div className="border rounded p-4">
