@@ -175,31 +175,41 @@ function BillsTab({ propertyId }: { propertyId: string }) {
           />
         </div>
       )}
-      <ul className="divide-y border rounded">
-        {filteredExpenses.map((x) => (
-          <li key={x.id} className="p-3">
-            <div className="flex justify-between">
-              <span className="font-semibold">{x.title}</span>
-              <span className="font-mono">${(x.amount_cents / 100).toFixed(2)} {x.status}</span>
+      {filteredExpenses.length === 0 ? (
+        <p className="p-3 text-slate-500">No bills yet.</p>
+      ) : (
+        <VirtualizedList
+          items={filteredExpenses}
+          getItemSize={(index) => {
+            const x = filteredExpenses[index];
+            const splits = (splitsByExpense[x.id] ?? []).length;
+            return 50 + (splits > 0 ? 20 + splits * 24 : 0);
+          }}
+          height={Math.min(filteredExpenses.length * 80, 500)}
+          renderItem={(x) => (
+            <div className="p-3 border-b">
+              <div className="flex justify-between">
+                <span className="font-semibold">{x.title}</span>
+                <span className="font-mono">${(x.amount_cents / 100).toFixed(2)} {x.status}</span>
+              </div>
+              {(splitsByExpense[x.id] ?? []).length > 0 && (
+                <ul className="mt-2 ml-4 space-y-1 text-xs">
+                  {(splitsByExpense[x.id] ?? []).map((s: any) => (
+                    <li key={s.id} className="flex justify-between items-center">
+                      <span>{s.user_id.slice(0, 8)}… · ${((s.share_cents - (s.paid_cents ?? 0)) / 100).toFixed(2)} due · {s.status}</span>
+                      {s.status !== 'paid' && (
+                        <button onClick={() => paySplit(s.id)} disabled={paying === s.id} className="border rounded px-2 py-0.5">
+                          {paying === s.id ? '…' : 'Pay'}
+                        </button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
-            {(splitsByExpense[x.id] ?? []).length > 0 && (
-              <ul className="mt-2 ml-4 space-y-1 text-xs">
-                {(splitsByExpense[x.id] ?? []).map((s: any) => (
-                  <li key={s.id} className="flex justify-between items-center">
-                    <span>{s.user_id.slice(0, 8)}… · ${((s.share_cents - (s.paid_cents ?? 0)) / 100).toFixed(2)} due · {s.status}</span>
-                    {s.status !== 'paid' && (
-                      <button onClick={() => paySplit(s.id)} disabled={paying === s.id} className="border rounded px-2 py-0.5">
-                        {paying === s.id ? '…' : 'Pay'}
-                      </button>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </li>
-        ))}
-        {filteredExpenses.length === 0 && <li className="p-3 text-slate-500">No bills yet.</li>}
-      </ul>
+          )}
+        />
+      )}
       {expenses.length >= 20 && (
         <button onClick={() => load(false)} className="mt-3 px-4 py-2 border rounded text-sm">Load more</button>
       )}
