@@ -350,6 +350,7 @@ function InventoryTab({ propertyId }: { propertyId: string }) {
           className="border rounded p-2 text-sm"
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
+          aria-label="Filter by category"
         >
           <option value="all">All categories</option>
           {categories.map((c) => (
@@ -371,7 +372,7 @@ function InventoryTab({ propertyId }: { propertyId: string }) {
             </div>
             <div className="mt-1 flex items-center gap-2 text-xs">
               {it.manual_url
-                ? <a href={it.manual_url} target="_blank" rel="noopener noreferrer" className="text-indigo-600 underline">Manual ↗</a>
+                ? <a href={it.manual_url} target="_blank" rel="noopener noreferrer" className="text-indigo-600 underline" aria-label="Open manual in new tab">Manual ↗ (opens in new tab)</a>
                 : <button onClick={() => window.open(`https://www.google.com/search?q=${encodeURIComponent((it.brand ?? '') + ' ' + (it.model_number ?? '') + ' manual pdf')}`, '_blank')} className="border rounded px-2 py-0.5">Find manual</button>}
               <input className="border rounded px-1 py-0.5 w-40" placeholder="paste manual URL" onKeyDown={async (e) => {
                 if (e.key !== 'Enter') return;
@@ -841,7 +842,7 @@ function TenancyTab({ propertyId }: { propertyId: string }) {
             }} className="flex flex-wrap gap-2 mb-3">
               <input className="border rounded p-1 text-sm" placeholder="Area" value={riArea} onChange={(e) => setRiArea(e.target.value)} required />
               <input className="border rounded p-1 text-sm" placeholder="Item" value={riItem} onChange={(e) => setRiItem(e.target.value)} required />
-              <select className="border rounded p-1 text-sm" value={riCondition} onChange={(e) => setRiCondition(e.target.value)}>
+              <select className="border rounded p-1 text-sm" value={riCondition} onChange={(e) => setRiCondition(e.target.value)} aria-label="Select condition">
                 <option value="new">new</option><option value="good">good</option><option value="fair">fair</option><option value="poor">poor</option><option value="damaged">damaged</option>
               </select>
               <input className="border rounded p-1 text-sm flex-1" placeholder="Notes" value={riNotes} onChange={(e) => setRiNotes(e.target.value)} />
@@ -945,7 +946,7 @@ function ChoresTab({ propertyId }: { propertyId: string }) {
       <form onSubmit={add} className="flex flex-wrap gap-2 mb-4">
         <input className="border rounded p-2 flex-1" placeholder="Chore title" value={title} onChange={(e) => setTitle(e.target.value)} required />
         <input className="border rounded p-2 flex-1" placeholder="Member UUIDs (comma-separated)" value={members} onChange={(e) => setMembers(e.target.value)} />
-        <select className="border rounded p-2" value={rrule} onChange={(e) => setRrule(e.target.value)}>
+        <select className="border rounded p-2" value={rrule} onChange={(e) => setRrule(e.target.value)} aria-label="Select recurrence frequency">
           <option value="">No repeat</option>
           <option value="FREQ=DAILY;INTERVAL=1">Daily</option>
           <option value="FREQ=WEEKLY;INTERVAL=1">Weekly</option>

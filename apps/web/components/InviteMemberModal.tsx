@@ -36,7 +36,7 @@ export function InviteMemberModal({ propertyId, onClose }: { propertyId: string;
           value={email}
           onChange={(e) => setEmail(e.target.value)}
         />
-        <select className="w-full border rounded p-2 mb-4" value={role} onChange={(e) => setRole(e.target.value)}>
+        <select className="w-full border rounded p-2 mb-4" value={role} onChange={(e) => setRole(e.target.value)} aria-label="Select member role">
           <option value="tenant">Tenant</option>
           <option value="agent">Agent</option>
           <option value="contractor">Contractor</option>
