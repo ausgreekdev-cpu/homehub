@@ -7,11 +7,13 @@ import { useMembership } from '@/lib/useMembership';
 import { NotificationsBell } from '@/components/NotificationsBell';
 import { OfflineBanner } from '@/components/OfflineBanner';
 import { enqueue } from '@/lib/offlineQueue';
-import { StripePaymentForm } from '@/components/StripePaymentForm';
+import { createLazyComponent } from '@/components/LazyLoad';
+const LazyStripePaymentForm = createLazyComponent(() => import('@/components/StripePaymentForm').then(m => ({ default: m.StripePaymentForm })));
+const LazyPlaidLinkButton = createLazyComponent(() => import('@/components/PlaidLinkButton').then(m => ({ default: m.PlaidLinkButton })));
+const LazyRateVendorModal = createLazyComponent(() => import('@/components/RateVendorModal').then(m => ({ default: m.RateVendorModal })));
+const LazyImageUpload = createLazyComponent(() => import('@/components/ImageUpload').then(m => ({ default: m.ImageUpload })));
 import { calculateDepreciation } from '@/lib/depreciation';
 import { getNextOccurrence } from '@/lib/rrule';
-import { PlaidLinkButton } from '@/components/PlaidLinkButton';
-import { RateVendorModal } from '@/components/RateVendorModal';
 import { VirtualizedList } from '@/components/VirtualizedList';
 
 function ItemPhoto({ path }: { path: string }) {
@@ -158,7 +160,7 @@ function BillsTab({ propertyId }: { propertyId: string }) {
         <button className="bg-slate-900 text-white rounded px-4">Add bill</button>
       </form>
       <div className="mb-4">
-        <PlaidLinkButton propertyId={propertyId} onSuccess={() => alert('Bank linked')} />
+        <LazyPlaidLinkButton propertyId={propertyId} onSuccess={() => alert('Bank linked')} />
       </div>
       {paymentData && (
         <div className="mb-4 p-4 border rounded bg-white">
@@ -166,7 +168,7 @@ function BillsTab({ propertyId }: { propertyId: string }) {
             <h3 className="font-semibold">Pay ${(paymentData.amountCents / 100).toFixed(2)}</h3>
             <button onClick={() => setPaymentData(null)} className="text-sm text-slate-500">Cancel</button>
           </div>
-          <StripePaymentForm
+          <LazyStripePaymentForm
             clientSecret={paymentData.clientSecret}
             amount={paymentData.amountCents}
             onSuccess={() => { alert('Payment successful'); setPaymentData(null); load(); }}
@@ -575,7 +577,7 @@ function MaintenanceTab({ propertyId }: { propertyId: string }) {
         {tickets.length === 0 && <li className="p-3 text-slate-500">No tickets yet.</li>}
       </ul>
       {ratingTicket && (
-        <RateVendorModal
+        <LazyRateVendorModal
           ticketId={ratingTicket.id}
           contractorId={ratingTicket.assigned_contractor_id || ''}
           onClose={() => setRatingTicket(null)}
