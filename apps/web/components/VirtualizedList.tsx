@@ -1,10 +1,11 @@
 'use client';
-import { FixedSizeList as List } from 'react-window';
-import { ReactNode } from 'react';
+import { FixedSizeList, VariableSizeList } from 'react-window';
+import { ReactNode, useRef, useEffect } from 'react';
 
 interface VirtualizedListProps<T> {
   items: T[];
-  itemHeight: number;
+  itemHeight?: number; // fixed height; if omitted, uses getItemSize
+  getItemSize?: (index: number) => number; // variable height
   height: number;
   width?: string | number;
   renderItem: (item: T, index: number) => ReactNode;
@@ -15,6 +16,7 @@ interface VirtualizedListProps<T> {
 export function VirtualizedList<T>({
   items,
   itemHeight,
+  getItemSize,
   height,
   width = '100%',
   renderItem,
@@ -25,13 +27,39 @@ export function VirtualizedList<T>({
     return <div className={className}><p className="text-slate-500 text-center py-8">No items</p></div>;
   }
 
+  const useVariable = !itemHeight && !!getItemSize;
+
+  if (useVariable && getItemSize) {
+    return (
+      <div className={className}>
+        <VariableSizeList
+          height={height}
+          width={width}
+          itemCount={items.length}
+          itemSize={getItemSize}
+          overscanCount={overscanCount}
+        >
+          {({ index, style }: { index: number; style: React.CSSProperties }) => {
+            const item = items[index];
+            if (!item) return null;
+            return (
+              <div style={style}>
+                {renderItem(item, index)}
+              </div>
+            );
+          }}
+        </VariableSizeList>
+      </div>
+    );
+  }
+
   return (
     <div className={className}>
-      <List
+      <FixedSizeList
         height={height}
         width={width}
         itemCount={items.length}
-        itemSize={itemHeight}
+        itemSize={itemHeight || 40}
         overscanCount={overscanCount}
       >
         {({ index, style }: { index: number; style: React.CSSProperties }) => {
@@ -43,7 +71,7 @@ export function VirtualizedList<T>({
             </div>
           );
         }}
-      </List>
+      </FixedSizeList>
     </div>
   );
 }
