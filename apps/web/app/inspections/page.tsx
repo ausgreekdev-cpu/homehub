@@ -82,11 +82,11 @@ export default function InspectionsPage() {
           <table className="w-full">
             <thead className="bg-slate-50">
               <tr>
-                <th className="text-left p-3">Property</th>
-                <th className="text-left p-3">Type</th>
-                <th className="text-left p-3">Date</th>
-                <th className="text-center p-3">Status</th>
-                <th className="text-center p-3">Action</th>
+                <th className="text-left p-3" scope="col">Property</th>
+                <th className="text-left p-3" scope="col">Type</th>
+                <th className="text-left p-3" scope="col">Date</th>
+                <th className="text-center p-3" scope="col">Status</th>
+                <th className="text-center p-3" scope="col">Action</th>
               </tr>
             </thead>
             <tbody>

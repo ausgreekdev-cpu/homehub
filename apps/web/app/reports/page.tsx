@@ -185,11 +185,11 @@ export default function ReportsPage() {
         <table className="w-full">
           <thead className="bg-slate-100">
             <tr>
-              <th className="text-left p-3">Property</th>
-              <th className="text-left p-3">Tenant</th>
-              <th className="text-left p-3">Email</th>
-              <th className="text-right p-3">Rent</th>
-              <th className="text-center p-3">Status</th>
+              <th className="text-left p-3" scope="col">Property</th>
+              <th className="text-left p-3" scope="col">Tenant</th>
+              <th className="text-left p-3" scope="col">Email</th>
+              <th className="text-right p-3" scope="col">Rent</th>
+              <th className="text-center p-3" scope="col">Status</th>
             </tr>
           </thead>
           <tbody>

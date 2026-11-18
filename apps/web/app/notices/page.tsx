@@ -96,11 +96,11 @@ export default function NoticesPage() {
           <table className="w-full">
             <thead className="bg-slate-50">
               <tr>
-                <th className="text-left p-3">Property</th>
-                <th className="text-left p-3">Type</th>
-                <th className="text-left p-3">Title</th>
-                <th className="text-left p-3">Effective</th>
-                <th className="text-center p-3">Status</th>
+                <th className="text-left p-3" scope="col">Property</th>
+                <th className="text-left p-3" scope="col">Type</th>
+                <th className="text-left p-3" scope="col">Title</th>
+                <th className="text-left p-3" scope="col">Effective</th>
+                <th className="text-center p-3" scope="col">Status</th>
               </tr>
             </thead>
             <tbody>

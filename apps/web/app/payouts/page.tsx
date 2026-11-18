@@ -65,11 +65,11 @@ export default function PayoutsPage() {
           <table className="w-full">
             <thead className="bg-slate-50">
               <tr>
-                <th className="text-left p-3">Payout ID</th>
-                <th className="text-left p-3">Account</th>
-                <th className="text-right p-3">Amount</th>
-                <th className="text-center p-3">Status</th>
-                <th className="text-left p-3">Date</th>
+                <th className="text-left p-3" scope="col">Payout ID</th>
+                <th className="text-left p-3" scope="col">Account</th>
+                <th className="text-right p-3" scope="col">Amount</th>
+                <th className="text-center p-3" scope="col">Status</th>
+                <th className="text-left p-3" scope="col">Date</th>
               </tr>
             </thead>
             <tbody>

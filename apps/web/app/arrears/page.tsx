@@ -72,14 +72,14 @@ export default function ArrearsPage() {
           <table className="w-full">
             <thead className="bg-slate-50">
               <tr>
-                <th className="text-left p-3">Property</th>
-                <th className="text-left p-3">Tenant</th>
-                <th className="text-right p-3">Amount Due</th>
-                <th className="text-right p-3">Late Fee</th>
-                <th className="text-right p-3">Total</th>
-                <th className="text-right p-3">Days Overdue</th>
-                <th className="text-center p-3">Status</th>
-                <th className="text-center p-3">Action</th>
+                <th className="text-left p-3" scope="col">Property</th>
+                <th className="text-left p-3" scope="col">Tenant</th>
+                <th className="text-right p-3" scope="col">Amount Due</th>
+                <th className="text-right p-3" scope="col">Late Fee</th>
+                <th className="text-right p-3" scope="col">Total</th>
+                <th className="text-right p-3" scope="col">Days Overdue</th>
+                <th className="text-center p-3" scope="col">Status</th>
+                <th className="text-center p-3" scope="col">Action</th>
               </tr>
             </thead>
             <tbody>

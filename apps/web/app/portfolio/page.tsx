@@ -55,10 +55,10 @@ export default function PortfolioPage() {
         <table className="w-full">
           <thead className="bg-slate-50">
             <tr>
-              <th className="text-left p-3">Property</th>
-              <th className="text-left p-3">Address</th>
-              <th className="text-center p-3">Status</th>
-              <th className="text-center p-3">Action</th>
+              <th className="text-left p-3" scope="col">Property</th>
+              <th className="text-left p-3" scope="col">Address</th>
+              <th className="text-center p-3" scope="col">Status</th>
+              <th className="text-center p-3" scope="col">Action</th>
             </tr>
           </thead>
           <tbody>

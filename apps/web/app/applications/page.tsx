@@ -48,12 +48,12 @@ export default function ApplicationsPage() {
           <table className="w-full">
             <thead className="bg-slate-50">
               <tr>
-                <th className="text-left p-3">Applicant</th>
-                <th className="text-left p-3">Listing</th>
-                <th className="text-left p-3">Email</th>
-                <th className="text-right p-3">Income</th>
-                <th className="text-center p-3">Status</th>
-                <th className="text-center p-3">Actions</th>
+                <th className="text-left p-3" scope="col">Applicant</th>
+                <th className="text-left p-3" scope="col">Listing</th>
+                <th className="text-left p-3" scope="col">Email</th>
+                <th className="text-right p-3" scope="col">Income</th>
+                <th className="text-center p-3" scope="col">Status</th>
+                <th className="text-center p-3" scope="col">Actions</th>
               </tr>
             </thead>
             <tbody>
