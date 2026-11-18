@@ -63,7 +63,7 @@ export default function PayoutsPage() {
       </div>
 
       {loading ? (
-        <p className="text-slate-500">Loading...</p>
+        <p className="text-slate-500" role="status" aria-live="polite">Loading payouts...</p>
       ) : payouts.length === 0 ? (
         <p className="text-slate-500">No payouts yet.</p>
       ) : (

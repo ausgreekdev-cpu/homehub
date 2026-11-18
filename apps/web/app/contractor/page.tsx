@@ -28,7 +28,7 @@ export default function ContractorPage() {
       <h1 className="text-2xl font-bold mb-6">Contractor Portal</h1>
       
       {loading ? (
-        <p className="text-slate-500">Loading...</p>
+        <p className="text-slate-500" role="status" aria-live="polite">Loading contractor portal...</p>
       ) : jobs.length === 0 ? (
         <p className="text-slate-500">No jobs assigned.</p>
       ) : (

@@ -30,7 +30,7 @@ export default function ListingsPage() {
       <p className="text-slate-600 mb-6">Find your next home</p>
       
       {loading ? (
-        <p className="text-slate-500">Loading...</p>
+        <p className="text-slate-500" role="status" aria-live="polite">Loading listings...</p>
       ) : listings.length === 0 ? (
         <p className="text-slate-500">No listings available.</p>
       ) : (

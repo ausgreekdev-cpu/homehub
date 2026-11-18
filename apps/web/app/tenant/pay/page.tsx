@@ -30,7 +30,7 @@ export default function TenantPay() {
     <main className="p-8 max-w-2xl mx-auto">
       <a href="/tenant" className="text-sm text-slate-600 underline">← Back</a>
       <h1 className="text-2xl font-bold mt-2 mb-6">Pay Rent</h1>
-      {loading ? <p className="text-slate-500">Loading...</p> : splits.length === 0 ? (
+      {loading ? <p className="text-slate-500" role="status" aria-live="polite">Loading payments...</p> : splits.length === 0 ? (
         <p className="text-slate-500">No pending payments.</p>
       ) : (
         <div className="space-y-3">

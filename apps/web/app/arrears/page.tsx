@@ -64,7 +64,7 @@ export default function ArrearsPage() {
       </div>
 
       {loading ? (
-        <p className="text-slate-500">Loading...</p>
+        <p className="text-slate-500" role="status" aria-live="polite">Loading arrears...</p>
       ) : arrears.length === 0 ? (
         <p className="text-slate-500">No arrears. All rent is up to date!</p>
       ) : (
