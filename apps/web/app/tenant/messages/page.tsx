@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { announce } from '@/components/AccessibilityAnnouncer'
+import { AccessibleInput } from '@/components/AccessibleInput'
 
 export default function TenantMessages() {
   const [messages, setMessages] = useState<any[]>([])
@@ -95,16 +96,15 @@ export default function TenantMessages() {
       <a href="/tenant" className="text-sm text-slate-600 underline">← Back</a>
       <h1 className="text-2xl font-bold mt-2 mb-6">Messages</h1>
       <form onSubmit={send} className="flex gap-2 mb-6" aria-label="Send a message">
-        <label htmlFor="message-input" className="sr-only">Message</label>
-        <input
-          id="message-input"
-          className="flex-1 border rounded p-2"
-          placeholder="Type a message..."
-          value={content}
-          onChange={e => setContent(e.target.value)}
-          required
-          aria-required="true"
-        />
+        <div className="flex-1">
+          <AccessibleInput
+            label="Message"
+            value={content}
+            onChange={e => setContent(e.target.value)}
+            placeholder="Type a message..."
+            required
+          />
+        </div>
         <button
           className="px-4 py-2 bg-slate-900 text-white rounded"
           type="submit"

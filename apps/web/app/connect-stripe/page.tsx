@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { AccessibleInput } from '@/components/AccessibleInput'
 
 export default function ConnectStripePage() {
   const [loading, setLoading] = useState(false)
@@ -29,16 +30,18 @@ export default function ConnectStripePage() {
       <p className="text-slate-600 mb-6">Connect your bank account to receive rent payments directly</p>
       
       <div className="border rounded p-6 space-y-4">
-        <input
-          className="w-full border rounded p-2"
-          placeholder="Property ID"
+        <AccessibleInput
+          label="Property ID"
           value={propertyId}
           onChange={(e) => setPropertyId(e.target.value)}
+          placeholder="Enter property ID"
+          required
         />
         <button
           onClick={connect}
           disabled={loading || !propertyId}
           className="w-full px-4 py-2 bg-[#635BFF] text-white rounded disabled:opacity-50"
+          aria-busy={loading}
         >
           {loading ? 'Connecting...' : 'Connect with Stripe'}
         </button>
