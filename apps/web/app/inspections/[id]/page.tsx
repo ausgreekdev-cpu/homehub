@@ -3,7 +3,8 @@
 import { useParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { ImageUpload } from '@/components/ImageUpload'
+import { createLazyComponent } from '@/components/LazyLoad'
+const LazyImageUpload = createLazyComponent(() => import('@/components/ImageUpload').then(m => ({ default: m.ImageUpload })))
 import { AccessibleInput } from '@/components/AccessibleInput'
 
 export default function InspectionDetailPage() {
@@ -106,7 +107,7 @@ export default function InspectionDetailPage() {
                 {item.move_in_photo_path ? (
                   <img src={`/api/storage/condition-reports/${item.move_in_photo_path}`} alt="Move-in" className="w-full h-32 object-cover rounded border" />
                 ) : (
-                  <ImageUpload onUpload={(f) => uploadPhoto(item.id, f, 'move_in_photo_path')} />
+                  <LazyImageUpload onUpload={(f: File) => uploadPhoto(item.id, f, 'move_in_photo_path')} />
                 )}
               </div>
               <div className="flex-1">
@@ -114,7 +115,7 @@ export default function InspectionDetailPage() {
                 {item.move_out_photo_path ? (
                   <img src={`/api/storage/condition-reports/${item.move_out_photo_path}`} alt="Move-out" className="w-full h-32 object-cover rounded border" />
                 ) : (
-                  <ImageUpload onUpload={(f) => uploadPhoto(item.id, f, 'move_out_photo_path')} />
+                  <LazyImageUpload onUpload={(f: File) => uploadPhoto(item.id, f, 'move_out_photo_path')} />
                 )}
               </div>
             </div>
