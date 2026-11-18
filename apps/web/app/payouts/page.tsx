@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { AccessibleInput } from '@/components/AccessibleInput'
 
 export default function PayoutsPage() {
   const [payouts, setPayouts] = useState<any[]>([])
@@ -38,20 +39,25 @@ export default function PayoutsPage() {
     <main className="p-8 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold mb-6">Payouts & Reconciliation</h1>
       
-      <div className="border rounded p-4 mb-6 flex gap-2">
-        <input
-          className="border rounded p-2 flex-1"
-          placeholder="Stripe Connect Account ID"
-          value={accountId}
-          onChange={(e) => setAccountId(e.target.value)}
-        />
-        <input
-          className="border rounded p-2 w-32"
-          placeholder="Amount"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-        />
-        <button onClick={createPayout} className="px-4 py-2 bg-slate-900 text-white rounded">
+      <div className="border rounded p-4 mb-6 flex gap-2 items-end">
+        <div className="flex-1">
+          <AccessibleInput
+            label="Stripe Connect Account ID"
+            value={accountId}
+            onChange={(e) => setAccountId(e.target.value)}
+            placeholder="Stripe Connect Account ID"
+          />
+        </div>
+        <div className="w-32">
+          <AccessibleInput
+            label="Amount"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            placeholder="Amount"
+            type="number"
+          />
+        </div>
+        <button onClick={createPayout} className="px-4 py-2 bg-slate-900 text-white rounded h-10" aria-label="Create payout">
           Create Payout
         </button>
       </div>
