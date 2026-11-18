@@ -55,7 +55,7 @@ export default function AnnouncementsPage() {
       </div>
 
       {showForm && (
-        <form aria-label="Create new announcement" onSubmit={create} className="border rounded p-4 mb-6 space-y-4">
+        <form aria-label="Create new announcement" onSubmit={create} className="border rounded p-4 mb-6 space-y-4" id="announcement-form">
           <AccessibleInput
             label="Property ID"
             value={form.property_id}

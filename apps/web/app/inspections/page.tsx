@@ -33,13 +33,13 @@ export default function InspectionsPage() {
     <main className="p-8 max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Inspections</h1>
-        <button onClick={() => setShowForm(!showForm)} className="px-4 py-2 bg-slate-900 text-white rounded" aria-expanded={showForm}>
+        <button onClick={() => setShowForm(!showForm)} className="px-4 py-2 bg-slate-900 text-white rounded" aria-expanded={showForm} aria-controls="inspection-form">
           {showForm ? 'Cancel' : 'Schedule Inspection'}
         </button>
       </div>
 
       {showForm && (
-        <form aria-label="Schedule inspection" onSubmit={create} className="border rounded p-4 mb-6 space-y-4">
+        <form aria-label="Schedule inspection" onSubmit={create} className="border rounded p-4 mb-6 space-y-4" id="inspection-form">
           <AccessibleInput
             label="Property ID"
             value={form.property_id}

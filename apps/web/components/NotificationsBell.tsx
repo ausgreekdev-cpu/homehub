@@ -29,7 +29,7 @@ export function NotificationsBell() {
         {unread > 0 && <span className="absolute top-0 right-0 bg-red-600 text-white text-xs rounded-full px-1" aria-label={`${unread} unread notifications`}>{unread}</span>}
       </button>
       {open && (
-        <div className="absolute right-0 mt-2 w-80 bg-white border rounded shadow-lg z-10 max-h-96 overflow-y-auto">
+        <div className="absolute right-0 mt-2 w-80 bg-white border rounded shadow-lg z-10 max-h-96 overflow-y-auto" role="dialog" aria-label="Notifications" aria-live="polite">
           {items.length === 0 && <div className="p-3 text-sm text-slate-500">No notifications.</div>}
           {items.map((n) => (
             <div key={n.id} className={`p-3 border-b text-sm ${n.read_at ? 'opacity-60' : ''}`}>
