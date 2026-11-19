@@ -73,9 +73,9 @@ export default function ApplicationsPage() {
                     </span>
                   </td>
                   <td className="p-3 text-center flex gap-2 justify-center">
-                    <button onClick={() => requestScreening(app.id)} className="px-2 py-1 border rounded text-xs" aria-label={`Screen application for ${app.first_name} ${app.last_name}`}>Screen</button>
-                    <button onClick={() => updateStatus(app.id, 'approved')} className="px-2 py-1 bg-green-600 text-white rounded text-xs" aria-label={`Approve application for ${app.first_name} ${app.last_name}`}>Approve</button>
-                    <button onClick={() => updateStatus(app.id, 'rejected')} className="px-2 py-1 bg-red-600 text-white rounded text-xs" aria-label={`Reject application for ${app.first_name} ${app.last_name}`}>Reject</button>
+                    <button type="button" onClick={() => requestScreening(app.id)} className="px-2 py-1 border rounded text-xs" aria-label={`Screen application for ${app.first_name} ${app.last_name}`}>Screen</button>
+                    <button type="button" onClick={() => updateStatus(app.id, 'approved')} className="px-2 py-1 bg-green-600 text-white rounded text-xs" aria-label={`Approve application for ${app.first_name} ${app.last_name}`}>Approve</button>
+                    <button type="button" onClick={() => updateStatus(app.id, 'rejected')} className="px-2 py-1 bg-red-600 text-white rounded text-xs" aria-label={`Reject application for ${app.first_name} ${app.last_name}`}>Reject</button>
                   </td>
                 </tr>
               ))}

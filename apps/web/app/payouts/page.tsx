@@ -57,7 +57,7 @@ export default function PayoutsPage() {
             type="number"
           />
         </div>
-        <button onClick={createPayout} className="px-4 py-2 bg-slate-900 text-white rounded h-10" aria-label="Create payout">
+        <button type="button" onClick={createPayout} className="px-4 py-2 bg-slate-900 text-white rounded h-10" aria-label="Create payout">
           Create Payout
         </button>
       </div>

@@ -112,12 +112,12 @@ export default function ReportsPage() {
         <div className="border rounded p-4">
           <h2 className="font-semibold mb-2">Rent Roll</h2>
           <p className="text-sm text-slate-600 mb-4">All tenants and rent amounts</p>
-          <button onClick={downloadRentRoll} className="px-4 py-2 border rounded text-sm" aria-label="Download rent roll as CSV">Download CSV</button>
+          <button type="button" onClick={downloadRentRoll} className="px-4 py-2 border rounded text-sm" aria-label="Download rent roll as CSV">Download CSV</button>
         </div>
         <div className="border rounded p-4">
           <h2 className="font-semibold mb-2">P&L Statement</h2>
           <p className="text-sm text-slate-600 mb-4">Income vs expenses</p>
-          <button onClick={generatePL} disabled={loading || !propertyId} className="px-4 py-2 border rounded text-sm disabled:opacity-50">
+          <button type="button" onClick={generatePL} disabled={loading || !propertyId} className="px-4 py-2 border rounded text-sm disabled:opacity-50">
             {loading ? 'Generating...' : 'Generate'}
           </button>
           {plReport && (
@@ -144,7 +144,7 @@ export default function ReportsPage() {
               onChange={(e) => setSelectedMonth(e.target.value)}
               aria-label="Select month for owner statement"
             />
-            <button onClick={generateOwnerStatement} disabled={loading} className="px-3 py-1 bg-slate-900 text-white rounded text-sm disabled:opacity-50">
+            <button type="button" onClick={generateOwnerStatement} disabled={loading} className="px-3 py-1 bg-slate-900 text-white rounded text-sm disabled:opacity-50">
               {loading ? 'Generating...' : 'Generate'}
             </button>
           </div>
@@ -169,11 +169,11 @@ export default function ReportsPage() {
               onChange={(e) => setPropertyId(e.target.value)}
               aria-label="Enter property ID for Xero export"
             />
-            <button onClick={exportXero} disabled={loading || !propertyId} className="px-3 py-1 bg-slate-900 text-white rounded text-sm disabled:opacity-50">
+            <button type="button" onClick={exportXero} disabled={loading || !propertyId} className="px-3 py-1 bg-slate-900 text-white rounded text-sm disabled:opacity-50">
               {loading ? 'Exporting...' : 'Export'}
             </button>
           </div>
-          {csv && <button onClick={downloadCsv} className="text-sm text-blue-600 underline">Download CSV</button>}
+          {csv && <button type="button" onClick={downloadCsv} className="text-sm text-blue-600 underline">Download CSV</button>}
         </div>
       </div>
 
