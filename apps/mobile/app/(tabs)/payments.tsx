@@ -1,22 +1,39 @@
 import { View, Text, StyleSheet, FlatList, RefreshControl, TouchableOpacity, Alert, ActivityIndicator } from 'react-native';
 import { useCallback, useEffect, useState } from 'react';
 import { fetchBills, createPaymentIntent, initStripePaymentSheet, presentStripePaymentSheet, recordPayment, Bill } from '../../services/payments';
+import { supabase } from '../../lib/supabase';
+import { cacheSet, cacheGet } from '../../services/offlineCache';
+import { useNetworkStatus } from '../../hooks/useNetworkStatus';
 
 export default function Payments() {
   const [items, setItems] = useState<Bill[]>([]);
   const [loading, setLoading] = useState(true);
   const [paying, setPaying] = useState<string | null>(null);
+  const { isOffline } = useNetworkStatus();
 
   const load = useCallback(async () => {
     setLoading(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    const cacheKey = user ? `bills_${user.id}` : 'bills';
+
+    if (isOffline) {
+      const cached = await cacheGet<Bill[]>(cacheKey);
+      if (cached) setItems(cached);
+      setLoading(false);
+      return;
+    }
+
     try {
       const bills = await fetchBills();
       setItems(bills);
+      await cacheSet(cacheKey, bills);
     } catch (e) {
       console.error('Failed to load bills', e);
+      const cached = await cacheGet<Bill[]>(cacheKey);
+      if (cached) setItems(cached);
     }
     setLoading(false);
-  }, []);
+  }, [isOffline]);
 
   useEffect(() => { load(); }, [load]);
 
