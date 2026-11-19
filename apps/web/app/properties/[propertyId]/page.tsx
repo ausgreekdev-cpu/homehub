@@ -554,38 +554,54 @@ function MaintenanceTab({ propertyId }: { propertyId: string }) {
         <textarea className="w-full border rounded p-2" placeholder="Description" value={desc} onChange={(e) => setDesc(e.target.value)} />
         <button className="bg-slate-900 text-white rounded px-4 py-2">Raise ticket</button>
       </form>
-      <ul className="divide-y border rounded">
-        {filteredTickets.map((t) => (
-          <li key={t.id} className="p-3">
-            <div className="font-semibold">{t.title} <span className="text-xs text-slate-500">· {t.status} · {t.priority}</span></div>
-            <div className="text-sm text-slate-600">{t.description}</div>
-            {t.ai_severity && <div className="text-xs text-indigo-600 mt-1">AI: {t.ai_severity} · {t.ai_trade_suggestion} · ${(t.ai_cost_min_cents/100).toFixed(0)}–${(t.ai_cost_max_cents/100).toFixed(0)}</div>}
-            <div className="mt-2 flex flex-wrap gap-2 text-xs">
-              {isManager && t.status === 'open' && <button onClick={() => updateStatus(t.id, 'triaged')} className="border rounded px-2 py-1">Triage</button>}
-              {isManager && t.status === 'quoted' && <button onClick={() => updateStatus(t.id, 'approved')} className="border rounded px-2 py-1">Approve quote</button>}
-              {isManager && (t.status === 'approved' || t.status === 'scheduled') && <button onClick={() => updateStatus(t.id, 'scheduled')} className="border rounded px-2 py-1">Schedule</button>}
-              {isContractor && (t.status === 'approved' || t.status === 'open' || t.status === 'triaged') && (
-                <>
-                  <input className="border rounded px-2 py-1 w-24" placeholder="Quote $" value={quoteAmount[t.id] ?? ''} onChange={(e) => setQuoteAmount((p) => ({ ...p, [t.id]: e.target.value }))} />
-                  <button onClick={() => submitQuote(t.id)} className="border rounded px-2 py-1">Submit quote</button>
-                </>
-              )}
-              {isContractor && t.status === 'scheduled' && <button onClick={() => checkin(t.id, 'checkin')} className="border rounded px-2 py-1">Check in</button>}
-              {isContractor && t.status === 'in_progress' && <button onClick={() => checkin(t.id, 'checkout')} className="border rounded px-2 py-1">Check out</button>}
-              {isContractor && t.status === 'completed' && (
-                <>
-                  <input className="border rounded px-2 py-1 w-24" placeholder="Invoice $" value={invoiceAmount[t.id] ?? ''} onChange={(e) => setInvoiceAmount((p) => ({ ...p, [t.id]: e.target.value }))} />
-                  <button onClick={() => submitInvoice(t.id)} className="border rounded px-2 py-1">Submit invoice</button>
-                </>
-              )}
-              {isManager && t.status === 'completed' && <button onClick={() => updateStatus(t.id, 'invoiced')} className="border rounded px-2 py-1">Mark invoiced</button>}
-              {isManager && t.status === 'completed' && <button onClick={() => setRatingTicket(t)} className="border rounded px-2 py-1">Rate</button>}
-              {isManager && t.status === 'invoiced' && <button onClick={() => updateStatus(t.id, 'closed')} className="border rounded px-2 py-1">Close</button>}
+      {filteredTickets.length === 0 ? (
+        <p className="p-3 text-slate-500">No tickets yet.</p>
+      ) : (
+        <VirtualizedList
+          items={filteredTickets}
+          getItemSize={(index) => {
+            const t = filteredTickets[index];
+            let height = 80; // base: title + description + padding
+            if (t.ai_severity) height += 20;
+            // button row
+            height += 40;
+            // contractor inputs
+            if (isContractor && (t.status === 'approved' || t.status === 'open' || t.status === 'triaged')) height += 30;
+            if (isContractor && t.status === 'completed') height += 30;
+            return height;
+          }}
+          height={Math.min(filteredTickets.length * 120, 600)}
+          renderItem={(t) => (
+            <div className="p-3 border-b">
+              <div className="font-semibold">{t.title} <span className="text-xs text-slate-500">· {t.status} · {t.priority}</span></div>
+              <div className="text-sm text-slate-600">{t.description}</div>
+              {t.ai_severity && <div className="text-xs text-indigo-600 mt-1">AI: {t.ai_severity} · {t.ai_trade_suggestion} · ${(t.ai_cost_min_cents/100).toFixed(0)}–${(t.ai_cost_max_cents/100).toFixed(0)}</div>}
+              <div className="mt-2 flex flex-wrap gap-2 text-xs">
+                {isManager && t.status === 'open' && <button onClick={() => updateStatus(t.id, 'triaged')} className="border rounded px-2 py-1">Triage</button>}
+                {isManager && t.status === 'quoted' && <button onClick={() => updateStatus(t.id, 'approved')} className="border rounded px-2 py-1">Approve quote</button>}
+                {isManager && (t.status === 'approved' || t.status === 'scheduled') && <button onClick={() => updateStatus(t.id, 'scheduled')} className="border rounded px-2 py-1">Schedule</button>}
+                {isContractor && (t.status === 'approved' || t.status === 'open' || t.status === 'triaged') && (
+                  <>
+                    <input className="border rounded px-2 py-1 w-24" placeholder="Quote $" value={quoteAmount[t.id] ?? ''} onChange={(e) => setQuoteAmount((p) => ({ ...p, [t.id]: e.target.value }))} />
+                    <button onClick={() => submitQuote(t.id)} className="border rounded px-2 py-1">Submit quote</button>
+                  </>
+                )}
+                {isContractor && t.status === 'scheduled' && <button onClick={() => checkin(t.id, 'checkin')} className="border rounded px-2 py-1">Check in</button>}
+                {isContractor && t.status === 'in_progress' && <button onClick={() => checkin(t.id, 'checkout')} className="border rounded px-2 py-1">Check out</button>}
+                {isContractor && t.status === 'completed' && (
+                  <>
+                    <input className="border rounded px-2 py-1 w-24" placeholder="Invoice $" value={invoiceAmount[t.id] ?? ''} onChange={(e) => setInvoiceAmount((p) => ({ ...p, [t.id]: e.target.value }))} />
+                    <button onClick={() => submitInvoice(t.id)} className="border rounded px-2 py-1">Submit invoice</button>
+                  </>
+                )}
+                {isManager && t.status === 'completed' && <button onClick={() => updateStatus(t.id, 'invoiced')} className="border rounded px-2 py-1">Mark invoiced</button>}
+                {isManager && t.status === 'completed' && <button onClick={() => setRatingTicket(t)} className="border rounded px-2 py-1">Rate</button>}
+                {isManager && t.status === 'invoiced' && <button onClick={() => updateStatus(t.id, 'closed')} className="border rounded px-2 py-1">Close</button>}
+              </div>
             </div>
-          </li>
-        ))}
-        {tickets.length === 0 && <li className="p-3 text-slate-500">No tickets yet.</li>}
-      </ul>
+          )}
+        />
+      )}
       {ratingTicket && (
         <LazyRateVendorModal
           ticketId={ratingTicket.id}
