@@ -380,7 +380,7 @@ function InventoryTab({ propertyId }: { propertyId: string }) {
               {it.model_number ? ` · model ${it.model_number}` : ''}
               {it.serial_number ? ` · SN ${it.serial_number}` : ''}
               {it.purchase_price_cents ? ` · purchased $${(it.purchase_price_cents/100).toFixed(2)}` : ''}
-              {it.warranty_expiry ? ` · warranty ${new Date(it.warranty_expiry).toLocaleDateString()}${new Date(it.warranty_expiry) < new Date(Date.now() + 30*86400000) ? ' ⚠️' : ''}` : ''}
+              {it.warranty_expiry ? ` · warranty ${new Date(it.warranty_expiry).toLocaleDateString()}${new Date(it.warranty_expiry) < new Date(Date.now() + 30*86400000) ? ' <span aria-hidden="true">⚠️</span>' : ''}` : ''}
             </div>
             <div className="mt-1 flex items-center gap-2 text-xs">
               {it.manual_url
