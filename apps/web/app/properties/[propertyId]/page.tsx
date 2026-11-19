@@ -541,6 +541,7 @@ function MaintenanceTab({ propertyId }: { propertyId: string }) {
           className="border rounded p-2 text-sm"
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
+          aria-label="Filter by status"
         >
           <option value="all">All statuses</option>
           <option value="open">Open</option>
