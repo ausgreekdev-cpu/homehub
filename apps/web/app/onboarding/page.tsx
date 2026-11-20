@@ -43,15 +43,15 @@ export default function OnboardingPage() {
 
         {step === 1 && (
           <div className="space-y-4">
-            <button onClick={() => { setRole('landlord'); setStep(2) }} className="w-full p-4 border rounded text-left hover:bg-slate-50" aria-label="I'm a Landlord or Agent - manage properties and tenants">
+            <button type="button" onClick={() => { setRole('landlord'); setStep(2) }} className="w-full p-4 border rounded text-left hover:bg-slate-50" aria-label="I'm a Landlord or Agent - manage properties and tenants">
               <div className="font-semibold">I'm a Landlord/Agent</div>
               <div className="text-sm text-slate-500">Manage properties and tenants</div>
             </button>
-            <button onClick={() => { setRole('tenant'); setStep(3) }} className="w-full p-4 border rounded text-left hover:bg-slate-50" aria-label="I'm a Tenant - join an existing property">
+            <button type="button" onClick={() => { setRole('tenant'); setStep(3) }} className="w-full p-4 border rounded text-left hover:bg-slate-50" aria-label="I'm a Tenant - join an existing property">
               <div className="font-semibold">I'm a Tenant</div>
               <div className="text-sm text-slate-500">Join an existing property</div>
             </button>
-            <button onClick={() => { setRole('contractor'); setStep(3) }} className="w-full p-4 border rounded text-left hover:bg-slate-50" aria-label="I'm a Contractor - join to handle maintenance jobs">
+            <button type="button" onClick={() => { setRole('contractor'); setStep(3) }} className="w-full p-4 border rounded text-left hover:bg-slate-50" aria-label="I'm a Contractor - join to handle maintenance jobs">
               <div className="font-semibold">I'm a Contractor</div>
               <div className="text-sm text-slate-500">Join to handle maintenance jobs</div>
             </button>
@@ -72,10 +72,10 @@ export default function OnboardingPage() {
                 aria-required="true"
               />
             </div>
-            <button onClick={createProperty} disabled={loading || !propertyName} className="w-full bg-slate-900 text-white rounded p-2 disabled:opacity-50">
+            <button type="button" onClick={createProperty} disabled={loading || !propertyName} className="w-full bg-slate-900 text-white rounded p-2 disabled:opacity-50">
               {loading ? 'Creating property...' : 'Create Property'}
             </button>
-            <button onClick={() => setStep(1)} className="w-full text-sm text-slate-500">Back</button>
+            <button type="button" onClick={() => setStep(1)} className="w-full text-sm text-slate-500">Back</button>
           </div>
         )}
 
@@ -93,10 +93,10 @@ export default function OnboardingPage() {
                 aria-required="true"
               />
             </div>
-            <button onClick={joinProperty} disabled={loading || !inviteCode} className="w-full bg-slate-900 text-white rounded p-2 disabled:opacity-50">
+            <button type="button" onClick={joinProperty} disabled={loading || !inviteCode} className="w-full bg-slate-900 text-white rounded p-2 disabled:opacity-50">
               {loading ? 'Joining property...' : 'Join Property'}
             </button>
-            <button onClick={() => setStep(1)} className="w-full text-sm text-slate-500">Back</button>
+            <button type="button" onClick={() => setStep(1)} className="w-full text-sm text-slate-500">Back</button>
           </div>
         )}
       </div>
