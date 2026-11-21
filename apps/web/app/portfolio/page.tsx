@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { VirtualizedList } from '@/components/VirtualizedList'
 
 export default function PortfolioPage() {
   const [properties, setProperties] = useState<any[]>([])
@@ -52,30 +53,29 @@ export default function PortfolioPage() {
       </div>
 
       <div className="border rounded overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-slate-50">
-            <tr>
-              <th className="text-left p-3" scope="col">Property</th>
-              <th className="text-left p-3" scope="col">Address</th>
-              <th className="text-center p-3" scope="col">Status</th>
-              <th className="text-center p-3" scope="col">Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {properties.map((p) => (
-              <tr key={p.id} className="border-t">
-                <td className="p-3 font-semibold">{p.name}</td>
-                <td className="p-3">{p.address}</td>
-                <td className="p-3 text-center">
-                  <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Active</span>
-                </td>
-                <td className="p-3 text-center">
-                  <a href={`/properties/${p.id}`} className="text-blue-600 text-sm underline">View</a>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="grid grid-cols-[1.5fr_2fr_1fr_1fr] bg-slate-50 px-3 py-3 text-sm font-semibold">
+          <div>Property</div>
+          <div>Address</div>
+          <div className="text-center">Status</div>
+          <div className="text-center">Action</div>
+        </div>
+        <VirtualizedList
+          items={properties}
+          itemHeight={48}
+          height={Math.min(properties.length * 48, 500)}
+          renderItem={(p) => (
+            <div className="grid grid-cols-[1.5fr_2fr_1fr_1fr] items-center border-t px-3 py-3 text-sm">
+              <div className="font-semibold">{p.name}</div>
+              <div>{p.address}</div>
+              <div className="text-center">
+                <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Active</span>
+              </div>
+              <div className="text-center">
+                <a href={`/properties/${p.id}`} className="text-blue-600 text-sm underline">View</a>
+              </div>
+            </div>
+          )}
+        />
       </div>
     </main>
   )

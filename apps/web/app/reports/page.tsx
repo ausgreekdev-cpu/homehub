@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { toCsv } from '@homehub/shared'
+import { VirtualizedList } from '@/components/VirtualizedList'
 
 interface RentRollRow {
   property: string
@@ -182,35 +183,35 @@ export default function ReportsPage() {
           <h2 className="font-semibold">Rent Roll</h2>
           <span className="text-sm text-slate-600">Total: ${(totalRent / 100).toFixed(2)}</span>
         </div>
-        <table className="w-full">
-          <thead className="bg-slate-100">
-            <tr>
-              <th className="text-left p-3" scope="col">Property</th>
-              <th className="text-left p-3" scope="col">Tenant</th>
-              <th className="text-left p-3" scope="col">Email</th>
-              <th className="text-right p-3" scope="col">Rent</th>
-              <th className="text-center p-3" scope="col">Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rentRoll.map((r, i) => (
-              <tr key={i} className="border-t">
-                <td className="p-3">{r.property}</td>
-                <td className="p-3">{r.tenant}</td>
-                <td className="p-3 text-sm">{r.email}</td>
-                <td className="p-3 text-right">${(r.rent / 100).toFixed(2)}</td>
-                <td className="p-3 text-center">
+        <div className="grid grid-cols-[1.5fr_1.5fr_2fr_1fr_1fr] bg-slate-100 px-3 py-3 text-sm font-semibold">
+          <div>Property</div>
+          <div>Tenant</div>
+          <div>Email</div>
+          <div className="text-right">Rent</div>
+          <div className="text-center">Status</div>
+        </div>
+        {rentRoll.length === 0 ? (
+          <p className="p-4 text-center text-slate-500">No rent data yet.</p>
+        ) : (
+          <VirtualizedList
+            items={rentRoll}
+            itemHeight={48}
+            height={Math.min(rentRoll.length * 48, 500)}
+            renderItem={(r) => (
+              <div className="grid grid-cols-[1.5fr_1.5fr_2fr_1fr_1fr] items-center border-t px-3 py-3 text-sm">
+                <div>{r.property}</div>
+                <div>{r.tenant}</div>
+                <div className="text-sm">{r.email}</div>
+                <div className="text-right">${(r.rent / 100).toFixed(2)}</div>
+                <div className="text-center">
                   <span className={`px-2 py-1 rounded text-xs ${r.status === 'paid' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}`}>
                     {r.status}
                   </span>
-                </td>
-              </tr>
-            ))}
-            {rentRoll.length === 0 && (
-              <tr><td colSpan={5} className="p-4 text-center text-slate-500">No rent data yet.</td></tr>
+                </div>
+              </div>
             )}
-          </tbody>
-        </table>
+          />
+        )}
       </div>
     </main>
   )
