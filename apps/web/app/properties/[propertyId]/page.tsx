@@ -217,6 +217,21 @@ function BillsTab({ propertyId }: { propertyId: string }) {
   );
 }
 
+// Estimate rendered height of an inventory row for VariableSizeList. Content is
+// a title line, a potentially wrapping detail line, and an action row.
+function estimateInventoryItemHeight(it: any): number {
+  let chars = (it.category ?? '').length + (it.condition ?? '').length + 30; // base detail text
+  if (it.purchase_price_cents && it.purchase_date) chars += 30; // current value
+  if (it.model_number) chars += (it.model_number as string).length + 10;
+  if (it.serial_number) chars += (it.serial_number as string).length + 8;
+  if (it.purchase_price_cents) chars += 20; // purchased price
+  if (it.warranty_expiry) chars += 30; // warranty + warning
+  const detailLines = Math.max(1, Math.ceil(chars / 90));
+  const titleChars = (it.name ?? '').length + (it.brand ?? '').length;
+  const titleLines = titleChars > 70 ? 2 : 1;
+  return 24 /* p-3 */ + titleLines * 20 + detailLines * 20 + 4 /* mt-1 */ + 28 /* action row */;
+}
+
 function InventoryTab({ propertyId }: { propertyId: string }) {
   const [items, setItems] = useState<any[]>([]);
   const [file, setFile] = useState<File | null>(null);
@@ -370,35 +385,43 @@ function InventoryTab({ propertyId }: { propertyId: string }) {
           ))}
         </select>
       </div>
-      <ul className="divide-y border rounded">
-        {filteredItems.map((it) => (
-          <li key={it.id} className="p-3">
-            <div className="font-semibold">{it.name} {it.brand ? `· ${it.brand}` : ''}</div>
-            <div className="text-sm text-slate-600">
-              {it.category} · {it.condition} · ${((it.replacement_value_cents ?? 0) / 100).toFixed(2)} est. replacement
-              {it.purchase_price_cents && it.purchase_date ? ` · current value: $${(calculateDepreciation(it.purchase_price_cents, it.purchase_date).currentValueCents / 100).toFixed(2)}` : ''}
-              {it.model_number ? ` · model ${it.model_number}` : ''}
-              {it.serial_number ? ` · SN ${it.serial_number}` : ''}
-              {it.purchase_price_cents ? ` · purchased $${(it.purchase_price_cents/100).toFixed(2)}` : ''}
-              {it.warranty_expiry ? ` · warranty ${new Date(it.warranty_expiry).toLocaleDateString()}${new Date(it.warranty_expiry) < new Date(Date.now() + 30*86400000) ? ' <span aria-hidden="true">⚠️</span>' : ''}` : ''}
-            </div>
-            <div className="mt-1 flex items-center gap-2 text-xs">
-              {it.manual_url
-                ? <a href={it.manual_url} target="_blank" rel="noopener noreferrer" className="text-indigo-600 underline" aria-label="Open manual in new tab">Manual ↗ (opens in new tab)</a>
-                : <button onClick={() => window.open(`https://www.google.com/search?q=${encodeURIComponent((it.brand ?? '') + ' ' + (it.model_number ?? '') + ' manual pdf')}`, '_blank')} className="border rounded px-2 py-0.5">Find manual</button>}
-              <input className="border rounded px-1 py-0.5 w-40" placeholder="paste manual URL" onKeyDown={async (e) => {
-                if (e.key !== 'Enter') return;
-                const v = (e.target as HTMLInputElement).value.trim();
-                if (!v) return;
-                const supabase = createClient();
-                await supabase.from('inventory_items').update({ manual_url: v }).eq('id', it.id);
-                load();
-              }} />
-            </div>
-          </li>
-        ))}
-        {filteredItems.length === 0 && <li className="p-3 text-slate-500">No inventory yet. Scan a photo to start.</li>}
-      </ul>
+      <div className="border rounded">
+        {filteredItems.length === 0 ? (
+          <p className="p-3 text-slate-500">No inventory yet. Scan a photo to start.</p>
+        ) : (
+          <VirtualizedList
+            items={filteredItems}
+            getItemSize={(index) => estimateInventoryItemHeight(filteredItems[index])}
+            height={Math.min(filteredItems.reduce((sum, it) => sum + estimateInventoryItemHeight(it), 0), 600)}
+            renderItem={(it, index) => (
+              <div className={`p-3 ${index === filteredItems.length - 1 ? '' : 'border-b'}`}>
+                <div className="font-semibold">{it.name} {it.brand ? `· ${it.brand}` : ''}</div>
+                <div className="text-sm text-slate-600">
+                  {it.category} · {it.condition} · ${((it.replacement_value_cents ?? 0) / 100).toFixed(2)} est. replacement
+                  {it.purchase_price_cents && it.purchase_date ? ` · current value: $${(calculateDepreciation(it.purchase_price_cents, it.purchase_date).currentValueCents / 100).toFixed(2)}` : ''}
+                  {it.model_number ? ` · model ${it.model_number}` : ''}
+                  {it.serial_number ? ` · SN ${it.serial_number}` : ''}
+                  {it.purchase_price_cents ? ` · purchased $${(it.purchase_price_cents/100).toFixed(2)}` : ''}
+                  {it.warranty_expiry ? ` · warranty ${new Date(it.warranty_expiry).toLocaleDateString()}${new Date(it.warranty_expiry) < new Date(Date.now() + 30*86400000) ? ' <span aria-hidden="true">⚠️</span>' : ''}` : ''}
+                </div>
+                <div className="mt-1 flex items-center gap-2 text-xs">
+                  {it.manual_url
+                    ? <a href={it.manual_url} target="_blank" rel="noopener noreferrer" className="text-indigo-600 underline" aria-label="Open manual in new tab">Manual ↗ (opens in new tab)</a>
+                    : <button type="button" onClick={() => window.open(`https://www.google.com/search?q=${encodeURIComponent((it.brand ?? '') + ' ' + (it.model_number ?? '') + ' manual pdf')}`, '_blank')} className="border rounded px-2 py-0.5">Find manual</button>}
+                  <input className="border rounded px-1 py-0.5 w-40" placeholder="paste manual URL" aria-label="Paste manual URL" onKeyDown={async (e) => {
+                    if (e.key !== 'Enter') return;
+                    const v = (e.target as HTMLInputElement).value.trim();
+                    if (!v) return;
+                    const supabase = createClient();
+                    await supabase.from('inventory_items').update({ manual_url: v }).eq('id', it.id);
+                    load();
+                  }} />
+                </div>
+              </div>
+            )}
+          />
+        )}
+      </div>
       {items.length >= 20 && (
         <button onClick={() => load(false)} className="mt-3 px-4 py-2 border rounded text-sm">
           Load more
